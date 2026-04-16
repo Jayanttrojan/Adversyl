@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Adversyl | VAPT Security Services</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@400;600;700;800&family=Space+Grotesk:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #050a0f;
+    --bg2: #080e16;
+    --surface: #0d1520;
+    --surface2: #111c2a;
+    --accent: #00e5ff;
+    --accent2: #ff2d5b;
+    --accent3: #39ff6e;
+    --text: #e8f4f8;
+    --muted: #6a8fa8;
+    --border: rgba(0,229,255,0.12);
+    --border2: rgba(0,229,255,0.25);
+    --mono: 'Share Tech Mono', monospace;
+    --display: 'Syne', sans-serif;
+    --body: 'Space Grotesk', sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--body);
+    font-size: 16px;
+    line-height: 1.6;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* Custom cursor */
+  .cursor { position: fixed; pointer-events: none; z-index: 9999; mix-blend-mode: difference; }
+  .cursor-dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; transform: translate(-50%,-50%); transition: width 0.2s, height 0.2s; }
+  .cursor-ring { width: 36px; height: 36px; border: 1px solid var(--accent); border-radius: 50%; transform: translate(-50%,-50%); transition: transform 0.1s, width 0.2s, height 0.2s; opacity: 0.5; }
+  body.hovering .cursor-dot { width: 12px; height: 12px; }
+  body.hovering .cursor-ring { width: 48px; height: 48px; }
+
+  /* Scanline overlay */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,229,255,0.015) 2px, rgba(0,229,255,0.015) 4px);
+    pointer-events: none; z-index: 1000;
+  }
+
+  /* Grid background */
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: linear-gradient(rgba(0,229,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0,229,255,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none; z-index: 0;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 500;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.25rem 4rem;
+    background: rgba(5,10,15,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo {
+    font-family: var(--mono);
+    font-size: 1.1rem;
+    color: var(--accent);
+    letter-spacing: 2px;
+    text-decoration: none;
+  }
+  .nav-logo span { color: var(--accent2); }
+  .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+  .nav-links a {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-decoration: none;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--accent); }
+  .nav-cta {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 0.6rem 1.5rem;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    background: transparent;
+    cursor: none;
+    transition: all 0.2s;
+    text-decoration: none;
+  }
+  .nav-cta:hover { background: var(--accent); color: var(--bg); }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: flex-start; justify-content: center;
+    padding: 8rem 4rem 6rem;
+    position: relative; z-index: 1;
+  }
+  .hero-eyebrow {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    letter-spacing: 4px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    display: flex; align-items: center; gap: 1rem;
+  }
+  .hero-eyebrow::before {
+    content: '';
+    display: inline-block;
+    width: 40px; height: 1px;
+    background: var(--accent);
+  }
+  .hero h1 {
+    font-family: var(--display);
+    font-size: clamp(3rem, 7vw, 6rem);
+    font-weight: 800;
+    line-height: 1.0;
+    letter-spacing: -2px;
+    max-width: 800px;
+    margin-bottom: 1.5rem;
+  }
+  .hero h1 .line2 { color: var(--accent); display: block; }
+  .hero h1 .line3 { color: var(--muted); display: block; font-weight: 400; }
+  .hero-sub {
+    font-size: 1.1rem;
+    color: var(--muted);
+    max-width: 520px;
+    margin-bottom: 2.5rem;
+    font-weight: 300;
+    line-height: 1.8;
+  }
+  .hero-actions { display: flex; gap: 1rem; align-items: center; }
+  .btn-primary {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 1rem 2rem;
+    background: var(--accent);
+    color: var(--bg);
+    border: none; cursor: none;
+    transition: all 0.2s;
+    text-decoration: none;
+    font-weight: 700;
+  }
+  .btn-primary:hover { background: #00c8df; transform: translateY(-2px); }
+  .btn-ghost {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 1rem 2rem;
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border2);
+    cursor: none;
+    transition: all 0.2s;
+    text-decoration: none;
+  }
+  .btn-ghost:hover { color: var(--text); border-color: var(--text); }
+
+  /* Threat ticker */
+  .threat-ticker {
+    position: absolute; bottom: 2rem; left: 0; right: 0;
+    background: rgba(255,45,91,0.08);
+    border-top: 1px solid rgba(255,45,91,0.2);
+    border-bottom: 1px solid rgba(255,45,91,0.2);
+    padding: 0.6rem 0;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    min-height: 46px;
+  }
+  .ticker-label {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 3px;
+    color: var(--accent2);
+    padding: 0 1.5rem;
+    white-space: nowrap;
+    border-right: 1px solid rgba(255,45,91,0.3);
+    display: flex; align-items: center; gap: 0.5rem;
+    background: #100b14;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 2;
+  }
+  .ticker-label::before { content: '⬤'; font-size: 6px; animation: blink 1s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+  .ticker-track {
+    display: flex; gap: 4rem;
+    animation: ticker 30s linear infinite;
+    padding-left: 2rem;
+    white-space: nowrap;
+    min-width: max-content;
+    will-change: transform;
+  }
+  @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  .ticker-item {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+  .ticker-item .t-type { color: var(--accent2); margin-right: 0.5rem; }
+
+  /* Stats bar */
+  .stats-bar {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    position: relative; z-index: 1;
+    margin: 0;
+  }
+  .stat-item {
+    padding: 2.5rem 3rem;
+    border-right: 1px solid var(--border);
+  }
+  .stat-item:last-child { border-right: none; }
+  .stat-num {
+    font-family: var(--display);
+    font-size: 3rem;
+    font-weight: 800;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 0.5rem;
+  }
+  .stat-num span { font-size: 1.5rem; color: var(--accent2); }
+  .stat-label { font-family: var(--mono); font-size: 0.7rem; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+
+  /* Sections */
+  section { position: relative; z-index: 1; }
+  .section-header { margin-bottom: 4rem; }
+  .section-tag {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 4px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+    display: flex; align-items: center; gap: 1rem;
+  }
+  .section-tag::before { content: '//'; color: var(--accent2); }
+  .section-title {
+    font-family: var(--display);
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -1px;
+  }
+  .section-title em { font-style: normal; color: var(--accent); }
+
+  /* SERVICES */
+  #services { padding: 6rem 4rem; }
+  .services-intro {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 4rem; align-items: center; margin-bottom: 4rem;
+  }
+  .services-copy-panel {
+    border: 1px solid var(--border);
+    background: linear-gradient(135deg, rgba(0,229,255,0.07), rgba(255,45,91,0.025) 42%, rgba(5,10,15,0.72));
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .services-copy-panel::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2), transparent);
+  }
+  .services-copy-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+  .panel-label {
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    letter-spacing: 3px;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+  .panel-status {
+    font-family: var(--mono);
+    font-size: 0.58rem;
+    letter-spacing: 2px;
+    color: var(--accent3);
+    text-transform: uppercase;
+    padding: 0.35rem 0.65rem;
+    border: 1px solid rgba(57,255,110,0.22);
+    background: rgba(57,255,110,0.04);
+    white-space: nowrap;
+  }
+  .services-desc { color: var(--muted); font-weight: 300; line-height: 1.9; margin-bottom: 1.5rem; }
+  .assessment-matrix {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin-bottom: 1.5rem;
+  }
+  .matrix-item {
+    background: rgba(5,10,15,0.9);
+    padding: 1rem;
+  }
+  .matrix-title {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 2px;
+    color: var(--accent2);
+    text-transform: uppercase;
+    margin-bottom: 0.4rem;
+  }
+  .matrix-text {
+    color: var(--text);
+    font-size: 0.86rem;
+    line-height: 1.55;
+  }
+  .engagement-list {
+    display: grid;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+  .engagement-item {
+    display: grid;
+    grid-template-columns: 92px 1fr;
+    gap: 1rem;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .engagement-item:last-child { border-bottom: none; }
+  .engagement-code {
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    color: var(--accent2);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .engagement-text {
+    color: var(--text);
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+  .engagement-text span { color: var(--muted); }
+  .services-proof {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+  }
+  .proof-item {
+    background: rgba(5,10,15,0.88);
+    padding: 1rem;
+  }
+  .proof-kicker {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 2px;
+    color: var(--accent2);
+    text-transform: uppercase;
+    margin-bottom: 0.35rem;
+  }
+  .proof-value {
+    font-family: var(--display);
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .services-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+  }
+  .service-card {
+    background: var(--bg2);
+    padding: 2.5rem;
+    transition: background 0.3s;
+    position: relative;
+    overflow: hidden;
+    cursor: none;
+  }
+  .service-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0;
+    width: 3px; height: 0;
+    background: var(--accent);
+    transition: height 0.4s ease;
+  }
+  .service-card:hover { background: var(--surface); }
+  .service-card:hover::before { height: 100%; }
+  .service-card:nth-child(2)::before { background: var(--accent2); }
+  .service-card:nth-child(3)::before { background: var(--accent3); }
+  .service-card:nth-child(4)::before { background: #ff9f1c; }
+  .service-card:nth-child(5)::before { background: #bf5af2; }
+  .service-card:nth-child(6)::before { background: var(--accent); }
+
+  .service-num {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 3px;
+    margin-bottom: 1.5rem;
+  }
+  .service-icon {
+    width: 48px; height: 48px;
+    margin-bottom: 1.5rem;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .service-icon svg { width: 36px; height: 36px; }
+  .service-name {
+    font-family: var(--display);
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    line-height: 1.2;
+  }
+  .service-desc {
+    font-size: 0.875rem;
+    color: var(--muted);
+    line-height: 1.8;
+    margin-bottom: 1.5rem;
+    font-weight: 300;
+  }
+  .service-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .tag {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 1px;
+    padding: 0.25rem 0.6rem;
+    border: 1px solid var(--border2);
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  .service-learn {
+    margin-top: 1.5rem;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--accent);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    display: flex; align-items: center; gap: 0.5rem;
+    text-decoration: none;
+    cursor: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .service-card:hover .service-learn { opacity: 1; }
+  .service-learn::after { content: '→'; }
+
+  /* METHODOLOGY */
+  #methodology { padding: 6rem 4rem; background: var(--bg2); }
+  .method-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; position: relative; }
+  .method-grid::before {
+    content: '';
+    position: absolute;
+    top: 32px; left: 10%; right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    z-index: 0;
+  }
+  .method-step {
+    display: flex; flex-direction: column; align-items: center;
+    text-align: center; padding: 0 1rem;
+    position: relative; z-index: 1;
+  }
+  .method-num {
+    width: 64px; height: 64px;
+    border: 1px solid var(--border2);
+    background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono);
+    font-size: 1.1rem;
+    color: var(--accent);
+    margin-bottom: 1.5rem;
+    position: relative;
+  }
+  .method-num::after {
+    content: '';
+    position: absolute; inset: -4px;
+    border: 1px solid var(--border);
+    animation: rotate 8s linear infinite;
+  }
+  @keyframes rotate { to { transform: rotate(360deg); } }
+  .method-title {
+    font-family: var(--display);
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+  }
+  .method-desc { font-size: 0.8rem; color: var(--muted); line-height: 1.7; font-weight: 300; }
+
+  /* WHY US */
+  #why { padding: 6rem 4rem; }
+  .why-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border: 1px solid var(--border); margin-top: 3rem; }
+  .why-item {
+    background: var(--bg);
+    padding: 2.5rem;
+    display: flex; gap: 1.5rem;
+    transition: background 0.2s;
+  }
+  .why-item:hover { background: var(--surface); }
+  .why-icon { flex-shrink: 0; }
+  .why-icon svg { width: 28px; height: 28px; }
+  .why-title { font-family: var(--display); font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .why-text { font-size: 0.875rem; color: var(--muted); line-height: 1.8; font-weight: 300; }
+
+  /* TOOLS */
+  #tools { padding: 6rem 4rem; background: var(--bg2); }
+  .tools-marquee-wrap { overflow: hidden; margin-top: 3rem; }
+  .tools-marquee { display: flex; gap: 0; animation: marquee 25s linear infinite; }
+  @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  .tool-chip {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    letter-spacing: 2px;
+    color: var(--muted);
+    padding: 0.75rem 2rem;
+    border: 1px solid var(--border);
+    white-space: nowrap;
+    margin-right: 1rem;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .tool-chip:hover { color: var(--accent); border-color: var(--accent); }
+  .tool-chip .dot { color: var(--accent); margin-right: 0.5rem; }
+
+  /* CTA */
+  #contact { padding: 8rem 4rem; text-align: center; position: relative; overflow: hidden; }
+  #contact::before {
+    content: 'SECURE';
+    position: absolute;
+    font-family: var(--display);
+    font-size: 20rem;
+    font-weight: 800;
+    color: rgba(0,229,255,0.02);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    white-space: nowrap;
+    pointer-events: none;
+    letter-spacing: -10px;
+  }
+  .cta-tag {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 4px;
+    color: var(--accent2);
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+  }
+  .cta-title {
+    font-family: var(--display);
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -2px;
+    margin-bottom: 1.5rem;
+  }
+  .cta-title em { font-style: normal; color: var(--accent); }
+  .cta-sub { color: var(--muted); font-size: 1.1rem; max-width: 500px; margin: 0 auto 3rem; font-weight: 300; }
+
+  /* FORM */
+  .contact-form {
+    max-width: 600px; margin: 0 auto;
+    display: flex; flex-direction: column; gap: 1rem;
+    position: relative; z-index: 1;
+  }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .form-group { display: flex; flex-direction: column; }
+  .form-label {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+  .form-input, .form-select, .form-textarea {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--body);
+    font-size: 0.9rem;
+    padding: 0.875rem 1rem;
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+    cursor: none;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--accent); }
+  .form-textarea { min-height: 100px; resize: vertical; }
+  .form-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236a8fa8' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 1rem center; }
+  .form-input::placeholder { color: var(--muted); }
+  .submit-btn {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 1.1rem;
+    background: var(--accent);
+    color: var(--bg);
+    border: none; cursor: none;
+    font-weight: 700;
+    transition: all 0.2s;
+    margin-top: 0.5rem;
+  }
+  .submit-btn:hover { background: #00c8df; }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 3rem 4rem;
+    display: flex; align-items: center; justify-content: space-between;
+    position: relative; z-index: 1;
+  }
+  .footer-logo { font-family: var(--mono); font-size: 1rem; color: var(--accent); letter-spacing: 2px; }
+  .footer-logo span { color: var(--accent2); }
+  .footer-copy { font-family: var(--mono); font-size: 0.65rem; color: var(--muted); letter-spacing: 2px; }
+  .footer-links { display: flex; gap: 2rem; }
+  .footer-links a { font-family: var(--mono); font-size: 0.65rem; color: var(--muted); text-decoration: none; letter-spacing: 2px; text-transform: uppercase; transition: color 0.2s; }
+  .footer-links a:hover { color: var(--accent); }
+
+  /* Animated gradient glow on hero */
+  .hero-glow {
+    position: absolute; top: 10%; right: -10%;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(0,229,255,0.06) 0%, transparent 70%);
+    pointer-events: none;
+    animation: pulse 6s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:0.5;transform:scale(1)} 50%{opacity:1;transform:scale(1.1)} }
+
+  /* Fade-in on scroll */
+  .fade-up { opacity: 0; transform: translateY(30px); transition: opacity 0.6s ease, transform 0.6s ease; }
+  .fade-up.visible { opacity: 1; transform: translateY(0); }
+
+  /* Mobile responsiveness */
+  @media (max-width: 900px) {
+    nav { padding: 1rem 1.5rem; }
+    .nav-links { display: none; }
+    .hero { padding: 7rem 1.5rem 4rem; }
+    .stats-bar { grid-template-columns: repeat(2, 1fr); }
+    #services, #methodology, #why, #tools, #contact { padding: 4rem 1.5rem; }
+    .services-intro { grid-template-columns: 1fr; }
+    .services-copy-panel { padding: 1.5rem; }
+    .services-copy-head { align-items: flex-start; flex-direction: column; }
+    .assessment-matrix { grid-template-columns: 1fr; }
+    .engagement-item { grid-template-columns: 1fr; gap: 0.35rem; }
+    .services-proof { grid-template-columns: 1fr; }
+    .services-grid { grid-template-columns: 1fr; }
+    .method-grid { grid-template-columns: 1fr; }
+    .method-grid::before { display: none; }
+    .why-grid { grid-template-columns: 1fr; }
+    footer { flex-direction: column; gap: 1rem; text-align: center; }
+    .form-row { grid-template-columns: 1fr; }
+    body { cursor: auto; }
+    .cursor { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Custom cursor -->
+<div class="cursor" id="cursorDot"><div class="cursor-dot"></div></div>
+<div class="cursor" id="cursorRing"><div class="cursor-ring"></div></div>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">ADVE<span>RSYL</span></a>
+  <ul class="nav-links">
+    <li><a href="#services">Services</a></li>
+    <li><a href="#methodology">Methodology</a></li>
+    <li><a href="#tools">Tools</a></li>
+    <li><a href="#why">Why Us</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <a href="#contact" class="nav-cta">Get Pentest</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-eyebrow">Vulnerability Assessment &amp; Penetration Testing</div>
+  <h1>
+    Find Your<br>
+    <span class="line2">Weaknesses</span>
+    <span class="line3">Before Attackers Do.</span>
+  </h1>
+  <p class="hero-sub">Elite red-team professionals delivering comprehensive VAPT services across web, network, mobile, and cloud infrastructure — with zero false promises.</p>
+  <div class="hero-actions">
+    <a href="#contact" class="btn-primary">Request Assessment</a>
+    <a href="#services" class="btn-ghost">View Services</a>
+  </div>
+
+  <div class="threat-ticker">
+    <div class="ticker-label">LIVE THREAT FEED</div>
+    <div class="ticker-track" id="ticker"></div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="stat-item fade-up">
+    <div class="stat-num">2,400<span>+</span></div>
+    <div class="stat-label">Vulnerabilities Found</div>
+  </div>
+  <div class="stat-item fade-up" style="transition-delay:0.1s">
+    <div class="stat-num">340<span>+</span></div>
+    <div class="stat-label">Assessments Completed</div>
+  </div>
+  <div class="stat-item fade-up" style="transition-delay:0.2s">
+    <div class="stat-num">98<span>%</span></div>
+    <div class="stat-label">Client Retention Rate</div>
+  </div>
+  <div class="stat-item fade-up" style="transition-delay:0.3s">
+    <div class="stat-num">0<span>days</span></div>
+    <div class="stat-label">Avg. Breach Risk Post-Test</div>
+  </div>
+</div>
+
+<!-- SERVICES -->
+<section id="services">
+  <div class="services-intro fade-up">
+    <div class="section-header">
+      <div class="section-tag">Our Services</div>
+      <h2 class="section-title">Evidence-Backed<br><em>Attack Surface Testing</em></h2>
+    </div>
+    <div class="services-copy-panel">
+      <div class="services-copy-head">
+        <div class="panel-label">Engagement Dossier</div>
+        <div class="panel-status">Client-ready output</div>
+      </div>
+      <p class="services-desc">A focused VAPT engagement built around business risk, not scanner noise. We validate exploitable paths, document real impact, and hand your team a remediation backlog they can execute.</p>
+      <div class="assessment-matrix">
+        <div class="matrix-item">
+          <div class="matrix-title">Scope Control</div>
+          <div class="matrix-text">Approved assets, roles, test windows, safe payload limits, and escalation contacts.</div>
+        </div>
+        <div class="matrix-item">
+          <div class="matrix-title">Evidence Pack</div>
+          <div class="matrix-text">Screenshots, request traces, payloads, affected URLs, and reproducible impact notes.</div>
+        </div>
+        <div class="matrix-item">
+          <div class="matrix-title">Risk Translation</div>
+          <div class="matrix-text">Technical findings mapped to business exposure, exploitability, and remediation urgency.</div>
+        </div>
+        <div class="matrix-item">
+          <div class="matrix-title">Fix Workflow</div>
+          <div class="matrix-text">Root cause, patch direction, owner-ready tasks, and retest acceptance criteria.</div>
+        </div>
+      </div>
+      <div class="engagement-list">
+        <div class="engagement-item">
+          <div class="engagement-code">ROE</div>
+          <div class="engagement-text">Signed authorization, communication channel, and stop conditions finalized before testing starts.</div>
+        </div>
+        <div class="engagement-item">
+          <div class="engagement-code">PoC</div>
+          <div class="engagement-text">Every confirmed issue includes reproduction steps, exploit path, affected assets, and impact narrative.</div>
+        </div>
+        <div class="engagement-item">
+          <div class="engagement-code">Fix</div>
+          <div class="engagement-text">Remediation notes are written for engineers, security owners, and leadership review.</div>
+        </div>
+      </div>
+              </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="services-grid">
+
+    <!-- 1. Web App VAPT -->
+    <div class="service-card fade-up">
+      <div class="service-num">01 / 06</div>
+      <div class="service-icon">
+        <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2" y="6" width="32" height="24" rx="2" stroke="#00e5ff" stroke-width="1.5"/>
+          <path d="M2 12h32" stroke="#00e5ff" stroke-width="1.5"/>
+          <circle cx="7" cy="9" r="1.5" fill="#ff2d5b"/>
+          <circle cx="12" cy="9" r="1.5" fill="#ffbb00"/>
+          <circle cx="17" cy="9" r="1.5" fill="#39ff6e"/>
+          <path d="M10 20l4-4 3 3 5-6" stroke="#00e5ff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="service-name">Web Application VAPT</div>
+      <div class="service-desc">Comprehensive testing of web apps against OWASP Top 10 and beyond. SQL injection, XSS, CSRF, IDOR, authentication bypasses, and business logic flaws.</div>
+      <div class="service-tags">
+        <span class="tag">OWASP Top 10</span>
+        <span class="tag">IDOR</span>
+        <span class="tag">Auth Bypass</span>
+        <span class="tag">API Testing</span>
+      </div>
+      <a class="service-learn" href="#contact">Request Service</a>
+    </div>
+
+    <!-- 2. Network VAPT -->
+    <div class="service-card fade-up" style="transition-delay:0.1s">
+      <div class="service-num">02 / 06</div>
+      <div class="service-icon">
+        <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="18" cy="18" r="4" stroke="#ff2d5b" stroke-width="1.5"/>
+          <circle cx="6" cy="8" r="3" stroke="#ff2d5b" stroke-width="1.5"/>
+          <circle cx="30" cy="8" r="3" stroke="#ff2d5b" stroke-width="1.5"/>
+          <circle cx="6" cy="28" r="3" stroke="#ff2d5b" stroke-width="1.5"/>
+          <circle cx="30" cy="28" r="3" stroke="#ff2d5b" stroke-width="1.5"/>
+          <path d="M9 9l6 6M27 9l-6 6M9 27l6-6M27 27l-6-6" stroke="#ff2d5b" stroke-width="1" stroke-dasharray="2 2"/>
+        </svg>
+      </div>
+      <div class="service-name">Network Penetration Testing</div>
+      <div class="service-desc">Internal and external network assessments covering firewalls, routers, switches, and segmentation. Lateral movement simulation and privilege escalation testing.</div>
+      <div class="service-tags">
+        <span class="tag">Internal</span>
+        <span class="tag">External</span>
+        <span class="tag">Firewall Review</span>
+        <span class="tag">Lateral Movement</span>
+      </div>
+      <a class="service-learn" href="#contact">Request Service</a>
+    </div>
+
+    <!-- 3. Mobile App VAPT -->
+    <div class="service-card fade-up" style="transition-delay:0.2s">
+      <div class="service-num">03 / 06</div>
+      <div class="service-icon">
+        <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="10" y="2" width="16" height="32" rx="3" stroke="#39ff6e" stroke-width="1.5"/>
+          <path d="M15 6h6" stroke="#39ff6e" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="18" cy="30" r="1.5" stroke="#39ff6e" stroke-width="1"/>
+          <path d="M14 16l2 2 4-4" stroke="#39ff6e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="service-name">Mobile Application VAPT</div>
+      <div class="service-desc">Android and iOS security testing aligned with OWASP Mobile Top 10. Insecure data storage, reverse engineering, API security, and traffic interception analysis.</div>
+      <div class="service-tags">
+        <span class="tag">Android</span>
+        <span class="tag">iOS</span>
+        <span class="tag">Reverse Eng.</span>
+        <span class="tag">MITM</span>
+      </div>
+      <a class="service-learn" href="#contact">Request Service</a>
+    </div>
+
+    <!-- 4. Cloud Security -->
+    <div class="service-card fade-up" style="transition-delay:0.1s">
+      <div class="service-num">04 / 06</div>
+      <div class="service-icon">
+        <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M28 22a6 6 0 000-12 6 6 0 00-11.6-2A5 5 0 108 22" stroke="#ff9f1c" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M14 26l4-4 4 4M18 22v8" stroke="#ff9f1c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="service-name">Cloud Security Assessment</div>
+      <div class="service-desc">Configuration review and penetration testing for AWS, Azure, and GCP environments. IAM misconfigurations, S3 bucket exposure, serverless function vulnerabilities.</div>
+      <div class="service-tags">
+        <span class="tag">AWS</span>
+        <span class="tag">Azure</span>
+        <span class="tag">GCP</span>
+        <span class="tag">IAM Review</span>
+      </div>
+      <a class="service-learn" href="#contact">Request Service</a>
+    </div>
+
+    <!-- 5. Social Engineering -->
+    <div class="service-card fade-up" style="transition-delay:0.2s">
+      <div class="service-num">05 / 06</div>
+      <div class="service-icon">
+        <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="18" cy="12" r="5" stroke="#bf5af2" stroke-width="1.5"/>
+          <path d="M8 30c0-5.5 4.5-10 10-10s10 4.5 10 10" stroke="#bf5af2" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M24 18l4-4M28 14l-2 4 4 2" stroke="#bf5af2" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="service-name">Social Engineering &amp; Phishing</div>
+      <div class="service-desc">Simulated phishing campaigns, vishing, and pretexting exercises to test human security controls. Comprehensive awareness metrics and training recommendations.</div>
+      <div class="service-tags">
+        <span class="tag">Phishing Sim</span>
+        <span class="tag">Vishing</span>
+        <span class="tag">Pretexting</span>
+        <span class="tag">USB Drop</span>
+      </div>
+      <a class="service-learn" href="#contact">Request Service</a>
+    </div>
+
+    <!-- 6. API Security -->
+    <div class="service-card fade-up" style="transition-delay:0.3s">
+      <div class="service-num">06 / 06</div>
+      <div class="service-icon">
+        <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M8 18h20M20 10l8 8-8 8" stroke="#00e5ff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M4 6h4v4H4zM28 26h4v4h-4z" stroke="#00e5ff" stroke-width="1.2"/>
+          <circle cx="8" cy="28" r="2" stroke="#00e5ff" stroke-width="1"/>
+          <circle cx="28" cy="8" r="2" stroke="#00e5ff" stroke-width="1"/>
+        </svg>
+      </div>
+      <div class="service-name">API Security Testing</div>
+      <div class="service-desc">REST, GraphQL, and SOAP API security evaluation covering authentication, authorization, data exposure, rate limiting, and injection vulnerabilities per OWASP API Top 10.</div>
+      <div class="service-tags">
+        <span class="tag">REST</span>
+        <span class="tag">GraphQL</span>
+        <span class="tag">OAuth</span>
+        <span class="tag">OWASP API</span>
+      </div>
+      <a class="service-learn" href="#contact">Request Service</a>
+    </div>
+
+  </div>
+</section>
+
+<!-- METHODOLOGY -->
+<section id="methodology">
+  <div class="section-header fade-up" style="text-align:center; max-width:600px; margin: 0 auto 4rem;">
+    <div class="section-tag" style="justify-content:center">Our Process</div>
+    <h2 class="section-title">How We <em>Operate</em></h2>
+  </div>
+  <div class="method-grid">
+    <div class="method-step fade-up">
+      <div class="method-num">01</div>
+      <div class="method-title">Scoping</div>
+      <div class="method-desc">Define target scope, rules of engagement, and objectives. NDA and authorization signed before any testing begins.</div>
+    </div>
+    <div class="method-step fade-up" style="transition-delay:0.1s">
+      <div class="method-num">02</div>
+      <div class="method-title">Reconnaissance</div>
+      <div class="method-desc">Passive and active OSINT gathering, attack surface mapping, technology fingerprinting, and enumeration.</div>
+    </div>
+    <div class="method-step fade-up" style="transition-delay:0.2s">
+      <div class="method-num">03</div>
+      <div class="method-title">Exploitation</div>
+      <div class="method-desc">Controlled exploitation of discovered vulnerabilities to determine real-world impact and business risk.</div>
+    </div>
+    <div class="method-step fade-up" style="transition-delay:0.3s">
+      <div class="method-num">04</div>
+      <div class="method-title">Post-Exploit</div>
+      <div class="method-desc">Privilege escalation, lateral movement, persistence simulation, and data exfiltration pathways analysis.</div>
+    </div>
+    <div class="method-step fade-up" style="transition-delay:0.4s">
+      <div class="method-num">05</div>
+      <div class="method-title">Reporting</div>
+      <div class="method-desc">Detailed technical report with CVSS-scored findings, executive summary, and step-by-step remediation guidance.</div>
+    </div>
+  </div>
+</section>
+
+<!-- WHY US -->
+<section id="why">
+  <div class="section-header fade-up">
+    <div class="section-tag">Why Adversyl</div>
+    <h2 class="section-title">No Automated<br><em>Scanner Dependency</em></h2>
+  </div>
+  <div class="why-grid">
+    <div class="why-item fade-up">
+      <div class="why-icon">
+        <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M14 3l10 5v8c0 5-4 9-10 11C8 25 4 21 4 16V8l10-5z" stroke="#00e5ff" stroke-width="1.5" stroke-linejoin="round"/>
+          <path d="M10 14l3 3 5-5" stroke="#00e5ff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div>
+        <div class="why-title">100% Manual Testing</div>
+        <div class="why-text">Every assessment is performed by humans, not scanners. We find logic flaws and chained exploits that automated tools miss entirely.</div>
+      </div>
+    </div>
+    <div class="why-item fade-up" style="transition-delay:0.1s">
+      <div class="why-icon">
+        <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="14" cy="14" r="10" stroke="#ff2d5b" stroke-width="1.5"/>
+          <path d="M14 9v5l3 3" stroke="#ff2d5b" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div>
+        <div class="why-title">72-Hour Quick Start</div>
+        <div class="why-text">From signed agreement to active testing within 72 hours. Rapid mobilization for urgent security assessments and incident response.</div>
+      </div>
+    </div>
+    <div class="why-item fade-up" style="transition-delay:0.1s">
+      <div class="why-icon">
+        <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="4" y="8" width="20" height="15" rx="1.5" stroke="#39ff6e" stroke-width="1.5"/>
+          <path d="M9 8V6a5 5 0 0110 0v2" stroke="#39ff6e" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="14" cy="15.5" r="2" stroke="#39ff6e" stroke-width="1.2"/>
+        </svg>
+      </div>
+      <div>
+        <div class="why-title">Certified Professionals</div>
+        <div class="why-text">All testers hold OSCP, CEH, CREST, or CISSP certifications. Active bug bounty hunters with real-world exploit experience.</div>
+      </div>
+    </div>
+    <div class="why-item fade-up" style="transition-delay:0.2s">
+      <div class="why-icon">
+        <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 14h4l3-8 4 16 3-8 3 5 3-5" stroke="#ff9f1c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div>
+        <div class="why-title">Actionable Reports</div>
+        <div class="why-text">No jargon-filled PDFs. Clear risk ratings, PoC evidence, remediation steps, and a retest included in every engagement.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TOOLS -->
+<section id="tools">
+  <div class="section-header fade-up" style="text-align:center; max-width:600px; margin: 0 auto;">
+    <div class="section-tag" style="justify-content:center">Arsenal</div>
+    <h2 class="section-title">Industry-Standard <em>Tooling</em></h2>
+  </div>
+  <div class="tools-marquee-wrap">
+    <div class="tools-marquee" id="toolsMarquee"></div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="cta-tag">Start Today</div>
+  <h2 class="cta-title">Ready to Test<br><em>Your Defenses?</em></h2>
+  <p class="cta-sub">Tell us about your environment and we'll scope a custom assessment within 24 hours. First consultation is free.</p>
+
+  <form class="contact-form" onsubmit="handleSubmit(event)">
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Full Name</label>
+        <input class="form-input" type="text" placeholder="Jane Smith" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Work Email</label>
+        <input class="form-input" type="email" placeholder="jane@company.com" required>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Company</label>
+        <input class="form-input" type="text" placeholder="Acme Corp" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Service Required</label>
+        <select class="form-select form-input">
+          <option value="">Select a service...</option>
+          <option>Web Application VAPT</option>
+          <option>Network Penetration Testing</option>
+          <option>Mobile Application VAPT</option>
+          <option>Cloud Security Assessment</option>
+          <option>Social Engineering / Phishing</option>
+          <option>API Security Testing</option>
+          <option>Full Red Team Engagement</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Scope &amp; Notes</label>
+      <textarea class="form-textarea form-input" placeholder="Describe your environment, number of targets, compliance requirements, timeline..."></textarea>
+    </div>
+    <button type="submit" class="submit-btn">Send Secure Request →</button>
+    <div id="form-success" style="display:none; font-family:var(--mono); font-size:0.75rem; color:var(--accent3); letter-spacing:2px; text-align:center; padding:1rem;">
+      ✓ REQUEST RECEIVED — WE'LL RESPOND WITHIN 24 HOURS
+    </div>
+  </form>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">ADVE<span>RSYL</span></div>
+  <div class="footer-copy">© 2025 Adversyl Security. All rights reserved.</div>
+  <div class="footer-links">
+    <a href="#">Privacy</a>
+    <a href="#">Terms</a>
+    <a href="#">Responsible Disclosure</a>
+  </div>
+</footer>
+
+<script>
+  // Custom cursor
+  const dot = document.getElementById('cursorDot');
+  const ring = document.getElementById('cursorRing');
+  let mx = -100, my = -100, rx = -100, ry = -100;
+  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+  function animateCursor() {
+    rx += (mx - rx) * 0.15;
+    ry += (my - ry) * 0.15;
+    dot.style.left = mx + 'px'; dot.style.top = my + 'px';
+    ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+    requestAnimationFrame(animateCursor);
+  }
+  animateCursor();
+  document.querySelectorAll('a, button, .service-card, .why-item').forEach(el => {
+    el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
+    el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
+  });
+
+  // Threat ticker
+  const threats = [
+    { type: 'CVE', text: 'CVE-2025-3241 — Critical RCE in Apache Struts' },
+    { type: 'ALERT', text: 'Ransomware wave targeting healthcare sector — 47 orgs affected' },
+    { type: 'CVE', text: 'CVE-2025-1189 — Auth bypass in popular SSO provider' },
+    { type: 'BREACH', text: 'Supply chain attack via malicious npm package (downloads: 2.1M)' },
+    { type: 'CVE', text: 'CVE-2025-4402 — SSRF in cloud metadata endpoint' },
+    { type: 'ALERT', text: 'Zero-day active exploitation in Windows Print Spooler' },
+    { type: 'BREACH', text: 'API key exposure in GitHub public repo — 1.4TB data at risk' },
+    { type: 'CVE', text: 'CVE-2025-2890 — SQL injection in enterprise CMS platform' },
+  ];
+  const ticker = document.getElementById('ticker');
+  const allThreats = [...threats, ...threats];
+  ticker.innerHTML = allThreats.map(t => `<span class="ticker-item"><span class="t-type">[${t.type}]</span>${t.text}</span>`).join('');
+
+  // Tools marquee
+  const tools = ['Burp Suite Pro','Metasploit','Nmap','Nessus','Wireshark','Cobalt Strike','BloodHound','Impacket','Nuclei','SQLMap','Hydra','Nikto','John the Ripper','Frida','MobSF','Aircrack-ng','OWASP ZAP','Subfinder','Amass','Shodan','ExploitDB','Responder','CrackMapExec','Mimikatz'];
+  const marquee = document.getElementById('toolsMarquee');
+  const allTools = [...tools, ...tools];
+  marquee.innerHTML = allTools.map(t => `<div class="tool-chip"><span class="dot">▶</span>${t}</div>`).join('');
+
+  // Fade-up on scroll
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+  // Form submit
+  function handleSubmit(e) {
+    e.preventDefault();
+    document.getElementById('form-success').style.display = 'block';
+    e.target.querySelectorAll('input, select, textarea, button').forEach(el => el.disabled = true);
+  }
+</script>
+</body>
+</html>
