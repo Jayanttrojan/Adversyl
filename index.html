@@ -4,7 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Adversyl | VAPT Security Services</title>
+<meta name="description" content="Elite VAPT services: web, network, mobile, cloud, API and social engineering penetration testing with evidence-backed reporting.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@400;600;700;800&family=Space+Grotesk:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -15,6 +17,8 @@
     --accent: #00e5ff;
     --accent2: #ff2d5b;
     --accent3: #39ff6e;
+    --accent4: #ff9f1c;
+    --accent5: #bf5af2;
     --text: #e8f4f8;
     --muted: #6a8fa8;
     --border: rgba(0,229,255,0.12);
@@ -22,6 +26,8 @@
     --mono: 'Share Tech Mono', monospace;
     --display: 'Syne', sans-serif;
     --body: 'Space Grotesk', sans-serif;
+    --ease: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-soft: cubic-bezier(0.25, 0.46, 0.45, 0.94);
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   html { scroll-behavior: smooth; }
@@ -32,15 +38,40 @@
     font-size: 16px;
     line-height: 1.6;
     overflow-x: hidden;
-    cursor: none;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    body.cursor-ready { cursor: none; }
+  }
+
+  a, button, input, select, textarea { font-family: inherit; }
+
+  /* Skip link for keyboard/screen-reader users */
+  .skip-link {
+    position: absolute; left: -9999px; top: 0;
+    background: var(--accent); color: var(--bg);
+    padding: 0.75rem 1.5rem; z-index: 2000;
+    font-family: var(--mono); font-size: 0.8rem; letter-spacing: 1px;
+  }
+  .skip-link:focus { left: 1rem; top: 1rem; }
+
+  /* Visible focus states everywhere (cursor:none doesn't remove keyboard nav) */
+  a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
   }
 
   /* Custom cursor */
-  .cursor { position: fixed; pointer-events: none; z-index: 9999; mix-blend-mode: difference; }
-  .cursor-dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; transform: translate(-50%,-50%); transition: width 0.2s, height 0.2s; }
-  .cursor-ring { width: 36px; height: 36px; border: 1px solid var(--accent); border-radius: 50%; transform: translate(-50%,-50%); transition: transform 0.1s, width 0.2s, height 0.2s; opacity: 0.5; }
+  .cursor { position: fixed; pointer-events: none; z-index: 9999; mix-blend-mode: difference; will-change: transform; }
+  .cursor-dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; transform: translate(-50%,-50%); transition: width 0.2s var(--ease), height 0.2s var(--ease); }
+  .cursor-ring { width: 36px; height: 36px; border: 1px solid var(--accent); border-radius: 50%; transform: translate(-50%,-50%); transition: width 0.25s var(--ease), height 0.25s var(--ease), border-color 0.25s; opacity: 0.5; }
   body.hovering .cursor-dot { width: 12px; height: 12px; }
-  body.hovering .cursor-ring { width: 48px; height: 48px; }
+  body.hovering .cursor-ring { width: 52px; height: 52px; }
+  body.hovering-danger .cursor-ring { border-color: var(--accent2); }
 
   /* Scanline overlay */
   body::before {
@@ -59,6 +90,14 @@
     pointer-events: none; z-index: 0;
   }
 
+  /* Scroll progress bar */
+  .scroll-progress {
+    position: fixed; top: 0; left: 0; height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    z-index: 1100; width: 0%;
+    transition: width 0.1s linear;
+  }
+
   /* NAV */
   nav {
     position: fixed; top: 0; left: 0; right: 0; z-index: 500;
@@ -67,7 +106,9 @@
     background: rgba(5,10,15,0.85);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border);
+    transition: padding 0.3s var(--ease), background 0.3s;
   }
+  nav.scrolled { padding: 0.85rem 4rem; background: rgba(5,10,15,0.96); }
   .nav-logo {
     font-family: var(--mono);
     font-size: 1.1rem;
@@ -85,22 +126,107 @@
     letter-spacing: 2px;
     text-transform: uppercase;
     transition: color 0.2s;
+    position: relative;
+    padding-bottom: 4px;
+  }
+  .nav-links a::after {
+    content: ''; position: absolute; left: 0; bottom: 0; height: 1px; width: 0;
+    background: var(--accent); transition: width 0.25s var(--ease);
   }
   .nav-links a:hover { color: var(--accent); }
-  .nav-cta {
+  .nav-links a:hover::after { width: 100%; }
+
+  /* SERVICES DROPDOWN */
+  .services-dropdown { position: relative; }
+  .dropdown-trigger {
     font-family: var(--mono);
     font-size: 0.75rem;
+    color: var(--muted);
     letter-spacing: 2px;
     text-transform: uppercase;
-    padding: 0.6rem 1.5rem;
-    border: 1px solid var(--accent);
-    color: var(--accent);
-    background: transparent;
-    cursor: none;
-    transition: all 0.2s;
-    text-decoration: none;
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: color 0.2s;
   }
-  .nav-cta:hover { background: var(--accent); color: var(--bg); }
+  .dropdown-trigger:hover { color: var(--accent); }
+  .dropdown-trigger.active { color: var(--accent); }
+  .dropdown-arrow {
+    font-size: 0.6rem;
+    transition: transform 0.3s var(--ease);
+    display: inline-block;
+  }
+  .dropdown-trigger.active .dropdown-arrow { transform: rotate(180deg); }
+
+  .dropdown-menu {
+    position: absolute; top: calc(100% + 0.75rem); left: 0;
+    background: rgba(5,10,15,0.96); backdrop-filter: blur(12px);
+    border: 1px solid var(--border2); border-radius: 6px;
+    min-width: 320px; z-index: 1000;
+    opacity: 0; visibility: hidden; transform: translateY(-12px);
+    transition: all 0.25s var(--ease);
+    box-shadow: 0 12px 48px rgba(0,229,255,0.15);
+  }
+
+  .dropdown-menu.active {
+    opacity: 1; visibility: visible; transform: translateY(0);
+  }
+
+  .dropdown-item {
+    padding: 0.75rem 1rem; border-bottom: 1px solid rgba(0,229,255,0.06);
+    cursor: pointer; transition: all 0.2s var(--ease);
+    display: flex; align-items: center; gap: 0.75rem;
+  }
+
+  .dropdown-item:last-child { border-bottom: none; }
+
+  .dropdown-item:hover {
+    background: rgba(0,229,255,0.08);
+    border-left: 3px solid var(--accent);
+    padding-left: calc(1rem - 3px);
+  }
+
+  .dropdown-item-icon {
+    font-size: 1.2rem; min-width: 24px;
+  }
+
+  .dropdown-item-title {
+    font-family: var(--body);
+    font-size: 0.8rem;
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .nav-cta {
+    font-family: var(--display);
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    padding: 0.8rem 1.8rem;
+    border: none;
+    color: #050a0f;
+    background: linear-gradient(135deg, var(--accent), var(--accent3));
+    border-radius: 6px;
+    transition: all 0.25s var(--ease);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 16px rgba(0,229,255,0.25);
+    cursor: pointer;
+  }
+
+  .nav-cta:hover { 
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,229,255,0.4);
+  }
+
+  .nav-cta:active {
+    transform: translateY(0);
+  }
+  .nav-toggle { display: none; background: none; border: 1px solid var(--border2); color: var(--accent); padding: 0.5rem 0.75rem; }
 
   /* HERO */
   .hero {
@@ -144,35 +270,66 @@
     font-weight: 300;
     line-height: 1.8;
   }
-  .hero-actions { display: flex; gap: 1rem; align-items: center; }
+  .hero-actions { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
   .btn-primary {
-    font-family: var(--mono);
-    font-size: 0.8rem;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    padding: 1rem 2rem;
-    background: var(--accent);
+    font-family: var(--display);
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    padding: 0.9rem 2rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent3));
     color: var(--bg);
-    border: none; cursor: none;
-    transition: all 0.2s;
+    border: none;
+    border-radius: 6px;
+    transition: all 0.3s var(--ease);
     text-decoration: none;
-    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 16px rgba(0,229,255,0.25);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
   }
-  .btn-primary:hover { background: #00c8df; transform: translateY(-2px); }
+  .btn-primary::before {
+    content: ''; position: absolute; inset: 0;
+    background: rgba(255,255,255,0.15);
+    transform: translateX(-100%) skewX(-15deg);
+    transition: transform 0.5s var(--ease);
+    z-index: -1;
+  }
+  .btn-primary:hover::before { transform: translateX(100%) skewX(-15deg); }
+  .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,229,255,0.35); }
+  .btn-primary:active { transform: translateY(-1px) scale(0.98); }
+
   .btn-ghost {
-    font-family: var(--mono);
-    font-size: 0.8rem;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    padding: 1rem 2rem;
+    font-family: var(--display);
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    padding: 0.9rem 2rem;
     background: transparent;
-    color: var(--muted);
-    border: 1px solid var(--border2);
-    cursor: none;
-    transition: all 0.2s;
+    color: var(--text);
+    border: 1.5px solid var(--border2);
+    border-radius: 6px;
+    transition: all 0.25s var(--ease);
     text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
   }
-  .btn-ghost:hover { color: var(--text); border-color: var(--text); }
+  .btn-ghost:hover { 
+    color: var(--accent); 
+    border-color: var(--accent);
+    background: rgba(0,229,255,0.05);
+    transform: translateY(-2px); 
+    box-shadow: 0 4px 16px rgba(0,229,255,0.15);
+  }
+  .btn-ghost:active { transform: translateY(0) scale(0.98); }
+
+  /* magnetic wrapper used on primary CTAs */
+  .magnetic { display: inline-block; will-change: transform; transition: transform 0.2s var(--ease-soft); }
 
   /* Threat ticker */
   .threat-ticker {
@@ -210,6 +367,7 @@
     min-width: max-content;
     will-change: transform;
   }
+  .ticker-track:hover { animation-play-state: paused; }
   @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
   .ticker-item {
     font-family: var(--mono);
@@ -230,7 +388,9 @@
   .stat-item {
     padding: 2.5rem 3rem;
     border-right: 1px solid var(--border);
+    transition: background 0.3s;
   }
+  .stat-item:hover { background: rgba(0,229,255,0.03); }
   .stat-item:last-child { border-right: none; }
   .stat-num {
     font-family: var(--display);
@@ -239,6 +399,7 @@
     color: var(--accent);
     line-height: 1;
     margin-bottom: 0.5rem;
+    font-variant-numeric: tabular-nums;
   }
   .stat-num span { font-size: 1.5rem; color: var(--accent2); }
   .stat-label { font-family: var(--mono); font-size: 0.7rem; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
@@ -321,7 +482,9 @@
   .matrix-item {
     background: rgba(5,10,15,0.9);
     padding: 1rem;
+    transition: background 0.25s;
   }
+  .matrix-item:hover { background: rgba(0,229,255,0.05); }
   .matrix-title {
     font-family: var(--mono);
     font-size: 0.6rem;
@@ -396,27 +559,37 @@
     border: 1px solid var(--border);
   }
   .service-card {
-    background: var(--bg2);
+    background: rgba(17,28,42,0.6);
+    border: 1px solid var(--border);
     padding: 2.5rem;
-    transition: background 0.3s;
+    border-radius: 8px;
+    transition: all 0.4s var(--ease);
     position: relative;
     overflow: hidden;
-    cursor: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
   }
   .service-card::before {
     content: '';
     position: absolute; top: 0; left: 0;
     width: 3px; height: 0;
     background: var(--accent);
-    transition: height 0.4s ease;
+    transition: height 0.4s var(--ease);
   }
-  .service-card:hover { background: var(--surface); }
+  .service-card:hover { 
+    background: rgba(17,28,42,0.95);
+    border-color: var(--accent);
+    transform: translateY(-6px);
+    box-shadow: 0 12px 32px rgba(0,229,255,0.15);
+  }
   .service-card:hover::before { height: 100%; }
-  .service-card:nth-child(2)::before { background: var(--accent2); }
-  .service-card:nth-child(3)::before { background: var(--accent3); }
-  .service-card:nth-child(4)::before { background: #ff9f1c; }
-  .service-card:nth-child(5)::before { background: #bf5af2; }
-  .service-card:nth-child(6)::before { background: var(--accent); }
+  .service-card[data-accent="danger"]::before { background: var(--accent2); }
+  .service-card[data-accent="green"]::before { background: var(--accent3); }
+  .service-card[data-accent="amber"]::before { background: var(--accent4); }
+  .service-card[data-accent="violet"]::before { background: var(--accent5); }
+  .service-card[data-accent="cyan"]::before { background: var(--accent); }
+
+  .service-card:hover .service-icon svg { transform: scale(1.12) rotate(-2deg); }
+  .service-icon svg { transition: transform 0.35s var(--ease); }
 
   .service-num {
     font-family: var(--mono);
@@ -464,16 +637,16 @@
     text-transform: uppercase;
     display: flex; align-items: center; gap: 0.5rem;
     text-decoration: none;
-    cursor: none;
     opacity: 0;
-    transition: opacity 0.2s;
+    transition: opacity 0.2s, gap 0.2s;
   }
-  .service-card:hover .service-learn { opacity: 1; }
-  .service-learn::after { content: '→'; }
+  .service-card:hover .service-learn, .service-card:focus-within .service-learn { opacity: 1; }
+  .service-learn::after { content: '→'; transition: transform 0.2s; }
+  .service-learn:hover::after { transform: translateX(4px); }
 
   /* METHODOLOGY */
-  #methodology { padding: 6rem 4rem; background: var(--bg2); }
-  .method-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; position: relative; }
+  #methodology { padding: 6rem 4rem; background: var(--bg); }
+  .method-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2rem; position: relative; }
   .method-grid::before {
     content: '';
     position: absolute;
@@ -484,8 +657,9 @@
   }
   .method-step {
     display: flex; flex-direction: column; align-items: center;
-    text-align: center; padding: 0 1rem;
+    text-align: center; 
     position: relative; z-index: 1;
+    cursor: pointer;
   }
   .method-num {
     width: 64px; height: 64px;
@@ -497,6 +671,11 @@
     color: var(--accent);
     margin-bottom: 1.5rem;
     position: relative;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+  .method-step:hover .method-num, .method-step.active .method-num {
+    border-color: var(--accent);
+    box-shadow: 0 0 20px rgba(0,229,255,0.25);
   }
   .method-num::after {
     content: '';
@@ -509,9 +688,18 @@
     font-family: var(--display);
     font-size: 0.95rem;
     font-weight: 700;
-    margin-bottom: 0.75rem;
+    margin-bottom: 1rem;
   }
-  .method-desc { font-size: 0.8rem; color: var(--muted); line-height: 1.7; font-weight: 300; }
+  .method-desc { 
+    font-size: 0.75rem; 
+    color: var(--muted); 
+    line-height: 1.7; 
+    font-weight: 300; 
+    display: none;
+  }
+  .method-step.active .method-desc, .method-step:hover .method-desc { 
+    display: block;
+  }
 
   /* WHY US */
   #why { padding: 6rem 4rem; }
@@ -520,9 +708,9 @@
     background: var(--bg);
     padding: 2.5rem;
     display: flex; gap: 1.5rem;
-    transition: background 0.2s;
+    transition: background 0.2s, transform 0.3s var(--ease);
   }
-  .why-item:hover { background: var(--surface); }
+  .why-item:hover { background: var(--surface); transform: translateX(4px); }
   .why-icon { flex-shrink: 0; }
   .why-icon svg { width: 28px; height: 28px; }
   .why-title { font-family: var(--display); font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; }
@@ -530,8 +718,13 @@
 
   /* TOOLS */
   #tools { padding: 6rem 4rem; background: var(--bg2); }
-  .tools-marquee-wrap { overflow: hidden; margin-top: 3rem; }
-  .tools-marquee { display: flex; gap: 0; animation: marquee 25s linear infinite; }
+  .tools-marquee-wrap {
+    overflow: hidden; margin-top: 3rem;
+    -webkit-mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent);
+    mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent);
+  }
+  .tools-marquee { display: flex; gap: 0; animation: marquee 28s linear infinite; }
+  .tools-marquee-wrap:hover .tools-marquee { animation-play-state: paused; }
   @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
   .tool-chip {
     font-family: var(--mono);
@@ -549,7 +742,13 @@
   .tool-chip .dot { color: var(--accent); margin-right: 0.5rem; }
 
   /* CTA */
-  #contact { padding: 8rem 4rem; text-align: center; position: relative; overflow: hidden; }
+  #contact { 
+    padding: 8rem 4rem; 
+    text-align: center; 
+    position: relative; 
+    overflow: hidden;
+    background: linear-gradient(180deg, rgba(0,229,255,0.02) 0%, transparent 50%);
+  }
   #contact::before {
     content: 'SECURE';
     position: absolute;
@@ -564,12 +763,18 @@
     letter-spacing: -10px;
   }
   .cta-tag {
-    font-family: var(--mono);
-    font-size: 0.7rem;
-    letter-spacing: 4px;
-    color: var(--accent2);
+    font-family: var(--display);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    color: var(--accent);
     text-transform: uppercase;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background: rgba(0,229,255,0.08);
+    border: 1px solid rgba(0,229,255,0.2);
+    border-radius: 4px;
   }
   .cta-title {
     font-family: var(--display);
@@ -580,13 +785,51 @@
     margin-bottom: 1.5rem;
   }
   .cta-title em { font-style: normal; color: var(--accent); }
-  .cta-sub { color: var(--muted); font-size: 1.1rem; max-width: 500px; margin: 0 auto 3rem; font-weight: 300; }
+  .cta-sub { color: var(--muted); font-size: 1.05rem; max-width: 500px; margin: 0 auto 3rem; font-weight: 300; line-height: 1.7; }
+
+  /* Enhanced dropdown styling */
+  .select-wrapper {
+    position: relative;
+    display: block;
+  }
+  .form-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='8' viewBox='0 0 14 8'%3E%3Cpath fill='%2300e5ff' d='M1 1l6 6 6-6' stroke='%2300e5ff' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1.2rem center;
+    background-size: 14px 8px;
+    padding-right: 2.8rem;
+  }
+  .form-select:hover:not(:disabled) {
+    border-color: var(--accent);
+  }
+  .form-select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0,229,255,0.12);
+    background-color: rgba(0,229,255,0.02);
+  }
+  .form-select option {
+    background: var(--surface2);
+    color: var(--text);
+    padding: 0.75rem;
+    border: none;
+  }
+  .form-select option:hover {
+    background: rgba(0,229,255,0.15);
+    color: var(--accent);
+  }
+  .form-select option:checked {
+    background: linear-gradient(#1a1a2e, #1a1a2e);
+    background-color: rgba(0,229,255,0.1);
+    color: var(--accent);
+  }
 
   /* FORM */
   .contact-form {
     max-width: 600px; margin: 0 auto;
     display: flex; flex-direction: column; gap: 1rem;
     position: relative; z-index: 1;
+    text-align: left;
   }
   .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
   .form-group { display: flex; flex-direction: column; }
@@ -599,35 +842,72 @@
     margin-bottom: 0.5rem;
   }
   .form-input, .form-select, .form-textarea {
-    background: var(--surface);
-    border: 1px solid var(--border);
+    background: rgba(17,28,42,0.6);
+    border: 1px solid var(--border2);
     color: var(--text);
     font-family: var(--body);
     font-size: 0.9rem;
-    padding: 0.875rem 1rem;
+    padding: 0.95rem 1.1rem;
     outline: none;
-    transition: border-color 0.2s;
+    transition: all 0.25s var(--ease);
     width: 100%;
-    cursor: none;
+    border-radius: 6px;
   }
-  .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--accent); }
-  .form-textarea { min-height: 100px; resize: vertical; }
-  .form-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236a8fa8' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 1rem center; }
+  .form-input:focus, .form-select:focus, .form-textarea:focus { 
+    border-color: var(--accent); 
+    box-shadow: 0 0 0 3px rgba(0,229,255,0.12); 
+    background: rgba(0,229,255,0.04);
+    transform: translateY(-1px);
+  }
+  .form-input:invalid:not(:placeholder-shown) { border-color: var(--accent2); }
+  .form-textarea { min-height: 120px; resize: vertical; }
+  .form-select { 
+    appearance: none; 
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2300e5ff' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); 
+    background-repeat: no-repeat; 
+    background-position: right 1.1rem center;
+    padding-right: 2.5rem;
+  }
+  .form-select option {
+    background: var(--bg2);
+    color: var(--text);
+    padding: 0.75rem;
+  }
   .form-input::placeholder { color: var(--muted); }
+
   .submit-btn {
-    font-family: var(--mono);
-    font-size: 0.8rem;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    padding: 1.1rem;
-    background: var(--accent);
+    font-family: var(--display);
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    padding: 1rem 2rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent3));
     color: var(--bg);
-    border: none; cursor: none;
-    font-weight: 700;
-    transition: all 0.2s;
-    margin-top: 0.5rem;
+    border: none;
+    border-radius: 6px;
+    transition: all 0.25s var(--ease);
+    margin-top: 1rem;
+    position: relative;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0,229,255,0.25);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    justify-content: center;
   }
-  .submit-btn:hover { background: #00c8df; }
+  .submit-btn:hover:not(:disabled) { 
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,229,255,0.35);
+  }
+  .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+  .submit-btn.loading::after {
+    content: ''; position: absolute; right: 1.5rem; top: 50%;
+    width: 14px; height: 14px; margin-top: -7px;
+    border: 2px solid rgba(5,10,15,0.3); border-top-color: var(--bg);
+    border-radius: 50%; animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
   /* FOOTER */
   footer {
@@ -635,6 +915,8 @@
     padding: 3rem 4rem;
     display: flex; align-items: center; justify-content: space-between;
     position: relative; z-index: 1;
+    flex-wrap: wrap;
+    gap: 1rem;
   }
   .footer-logo { font-family: var(--mono); font-size: 1rem; color: var(--accent); letter-spacing: 2px; }
   .footer-logo span { color: var(--accent2); }
@@ -642,6 +924,18 @@
   .footer-links { display: flex; gap: 2rem; }
   .footer-links a { font-family: var(--mono); font-size: 0.65rem; color: var(--muted); text-decoration: none; letter-spacing: 2px; text-transform: uppercase; transition: color 0.2s; }
   .footer-links a:hover { color: var(--accent); }
+
+  /* back to top */
+  .back-to-top {
+    position: fixed; bottom: 2rem; right: 2rem; z-index: 400;
+    width: 48px; height: 48px;
+    background: var(--surface); border: 1px solid var(--border2);
+    color: var(--accent); display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none; transform: translateY(10px);
+    transition: opacity 0.3s, transform 0.3s var(--ease), border-color 0.2s;
+  }
+  .back-to-top.visible { opacity: 1; pointer-events: auto; transform: translateY(0); }
+  .back-to-top:hover { border-color: var(--accent); }
 
   /* Animated gradient glow on hero */
   .hero-glow {
@@ -654,13 +948,14 @@
   @keyframes pulse { 0%,100%{opacity:0.5;transform:scale(1)} 50%{opacity:1;transform:scale(1.1)} }
 
   /* Fade-in on scroll */
-  .fade-up { opacity: 0; transform: translateY(30px); transition: opacity 0.6s ease, transform 0.6s ease; }
+  .fade-up { opacity: 0; transform: translateY(30px); transition: opacity 0.7s var(--ease), transform 0.7s var(--ease); }
   .fade-up.visible { opacity: 1; transform: translateY(0); }
 
   /* Mobile responsiveness */
   @media (max-width: 900px) {
     nav { padding: 1rem 1.5rem; }
     .nav-links { display: none; }
+    .nav-toggle { display: inline-flex; }
     .hero { padding: 7rem 1.5rem 4rem; }
     .stats-bar { grid-template-columns: repeat(2, 1fr); }
     #services, #methodology, #why, #tools, #contact { padding: 4rem 1.5rem; }
@@ -671,27 +966,64 @@
     .engagement-item { grid-template-columns: 1fr; gap: 0.35rem; }
     .services-proof { grid-template-columns: 1fr; }
     .services-grid { grid-template-columns: 1fr; }
-    .method-grid { grid-template-columns: 1fr; }
+    .calc-wrap { grid-template-columns: 1fr; }
+    .method-grid { grid-template-columns: 1fr; gap: 2rem; }
     .method-grid::before { display: none; }
+    .method-desc { display: block; }
     .why-grid { grid-template-columns: 1fr; }
     footer { flex-direction: column; gap: 1rem; text-align: center; }
     .form-row { grid-template-columns: 1fr; }
-    body { cursor: auto; }
+    body, body.cursor-ready { cursor: auto; }
     .cursor { display: none; }
+    .back-to-top { right: 1rem; bottom: 1rem; }
   }
 </style>
 </head>
 <body>
 
+<a href="#main" class="skip-link">Skip to main content</a>
+
+<div class="scroll-progress" id="scrollProgress"></div>
+
 <!-- Custom cursor -->
-<div class="cursor" id="cursorDot"><div class="cursor-dot"></div></div>
-<div class="cursor" id="cursorRing"><div class="cursor-ring"></div></div>
+<div class="cursor" id="cursorDot" aria-hidden="true"><div class="cursor-dot"></div></div>
+<div class="cursor" id="cursorRing" aria-hidden="true"><div class="cursor-ring"></div></div>
 
 <!-- NAV -->
-<nav>
+<nav id="mainNav">
   <a href="#" class="nav-logo">ADVE<span>RSYL</span></a>
   <ul class="nav-links">
-    <li><a href="#services">Services</a></li>
+    <li class="services-dropdown">
+      <div class="dropdown-trigger" id="servicesDropdownTrigger">
+        Services <span class="dropdown-arrow">▼</span>
+      </div>
+      <div class="dropdown-menu" id="servicesDropdownMenu">
+        <div class="dropdown-item" onclick="scrollToServices('web')">
+          <div class="dropdown-item-icon">🌐</div>
+          <div class="dropdown-item-title">Web Application VAPT</div>
+        </div>
+        <div class="dropdown-item" onclick="scrollToServices('network')">
+          <div class="dropdown-item-icon">🔗</div>
+          <div class="dropdown-item-title">Network Penetration Testing</div>
+        </div>
+        <div class="dropdown-item" onclick="scrollToServices('mobile')">
+          <div class="dropdown-item-icon">📱</div>
+          <div class="dropdown-item-title">Mobile Application VAPT</div>
+        </div>
+        <div class="dropdown-item" onclick="scrollToServices('cloud')">
+          <div class="dropdown-item-icon">☁️</div>
+          <div class="dropdown-item-title">Cloud Security Assessment</div>
+        </div>
+        <div class="dropdown-item" onclick="scrollToServices('api')">
+          <div class="dropdown-item-icon">🔌</div>
+          <div class="dropdown-item-title">API Security Testing</div>
+        </div>
+        <div class="dropdown-item" onclick="scrollToServices('social')">
+          <div class="dropdown-item-icon">🎯</div>
+          <div class="dropdown-item-title">Social Engineering & Phishing</div>
+        </div>
+      </div>
+    </li>
     <li><a href="#methodology">Methodology</a></li>
     <li><a href="#tools">Tools</a></li>
     <li><a href="#why">Why Us</a></li>
@@ -699,6 +1031,8 @@
   </ul>
   <a href="#contact" class="nav-cta">Get Pentest</a>
 </nav>
+
+<main id="main">
 
 <!-- HERO -->
 <section class="hero">
@@ -711,7 +1045,7 @@
   </h1>
   <p class="hero-sub">Elite red-team professionals delivering comprehensive VAPT services across web, network, mobile, and cloud infrastructure — with zero false promises.</p>
   <div class="hero-actions">
-    <a href="#contact" class="btn-primary">Request Assessment</a>
+    <span class="magnetic"><a href="#contact" class="btn-primary">Request Assessment</a></span>
     <a href="#services" class="btn-ghost">View Services</a>
   </div>
 
@@ -724,19 +1058,19 @@
 <!-- STATS -->
 <div class="stats-bar">
   <div class="stat-item fade-up">
-    <div class="stat-num">2,400<span>+</span></div>
+    <div class="stat-num"><span class="count-up" data-target="2400">0</span><span>+</span></div>
     <div class="stat-label">Vulnerabilities Found</div>
   </div>
   <div class="stat-item fade-up" style="transition-delay:0.1s">
-    <div class="stat-num">340<span>+</span></div>
+    <div class="stat-num"><span class="count-up" data-target="340">0</span><span>+</span></div>
     <div class="stat-label">Assessments Completed</div>
   </div>
   <div class="stat-item fade-up" style="transition-delay:0.2s">
-    <div class="stat-num">98<span>%</span></div>
+    <div class="stat-num"><span class="count-up" data-target="98">0</span><span>%</span></div>
     <div class="stat-label">Client Retention Rate</div>
   </div>
   <div class="stat-item fade-up" style="transition-delay:0.3s">
-    <div class="stat-num">0<span>days</span></div>
+    <div class="stat-num"><span class="count-up" data-target="0">0</span><span>days</span></div>
     <div class="stat-label">Avg. Breach Risk Post-Test</div>
   </div>
 </div>
@@ -746,47 +1080,45 @@
   <div class="services-intro fade-up">
     <div class="section-header">
       <div class="section-tag">Our Services</div>
-      <h2 class="section-title">Evidence-Backed<br><em>Attack Surface Testing</em></h2>
+      <h2 class="section-title">Methodical Exploitation<br><em>Not Scanner Noise</em></h2>
     </div>
     <div class="services-copy-panel">
       <div class="services-copy-head">
         <div class="panel-label">Engagement Dossier</div>
-        <div class="panel-status">Client-ready output</div>
+        <div class="panel-status">Exploitable findings only</div>
       </div>
-      <p class="services-desc">A focused VAPT engagement built around business risk, not scanner noise. We validate exploitable paths, document real impact, and hand your team a remediation backlog they can execute.</p>
+      <p class="services-desc">Manual testing across reconnaissance, initial access, lateral movement, and persistence. Every finding is walkthrough-documented with PoC, affected assets, CVSS 3.1 scoring, and owner-ready remediation. No false positives.</p>
       <div class="assessment-matrix">
         <div class="matrix-item">
-          <div class="matrix-title">Scope Control</div>
-          <div class="matrix-text">Approved assets, roles, test windows, safe payload limits, and escalation contacts.</div>
+          <div class="matrix-title">Scope Definition</div>
+          <div class="matrix-text">Target IP ranges, domain names, cloud accounts, API endpoints, test windows, payload safeguards (no data exfil, no ransomware), and emergency stop contact.</div>
         </div>
         <div class="matrix-item">
-          <div class="matrix-title">Evidence Pack</div>
-          <div class="matrix-text">Screenshots, request traces, payloads, affected URLs, and reproducible impact notes.</div>
+          <div class="matrix-title">PoC Documentation</div>
+          <div class="matrix-text">HTTP request/response chains, CLI command sequences, Burp repeater tabs, code snippets for exploitation, and before/after screenshots from target system.</div>
         </div>
         <div class="matrix-item">
           <div class="matrix-title">Risk Translation</div>
-          <div class="matrix-text">Technical findings mapped to business exposure, exploitability, and remediation urgency.</div>
+          <div class="matrix-text">CVSS 3.1 base/temporal/environmental scores, business impact narrative, exploitability chain (how attacker chains findings for larger breach), and time-to-fix estimates per severity.</div>
         </div>
         <div class="matrix-item">
-          <div class="matrix-title">Fix Workflow</div>
-          <div class="matrix-text">Root cause, patch direction, owner-ready tasks, and retest acceptance criteria.</div>
+          <div class="matrix-title">Remediation Workflow</div>
+          <div class="matrix-text">Code patch or configuration change required, owner assignment by team, validation testing steps, and regression risk assessment. Includes retest pass/fail criteria.</div>
         </div>
       </div>
       <div class="engagement-list">
         <div class="engagement-item">
-          <div class="engagement-code">ROE</div>
-          <div class="engagement-text">Signed authorization, communication channel, and stop conditions finalized before testing starts.</div>
+          <div class="engagement-code">RULES OF ENGAGEMENT</div>
+          <div class="engagement-text">Signed engagement agreement specifying test scope, authorized times, payload constraints (no wiper malware, no destructive payloads), IP ranges, API rate limits, and on-call incident contact. Legal review required.</div>
         </div>
         <div class="engagement-item">
-          <div class="engagement-code">PoC</div>
-          <div class="engagement-text">Every confirmed issue includes reproduction steps, exploit path, affected assets, and impact narrative.</div>
+          <div class="engagement-code">PROOF OF CONCEPT</div>
+          <div class="engagement-text">Every vulnerability confirmed with live exploitation: Burp Suite request saved, HTTP status/response shown, database query results displayed, reverse shell session screenshot, or credential validation in target system.</div>
         </div>
         <div class="engagement-item">
-          <div class="engagement-code">Fix</div>
-          <div class="engagement-text">Remediation notes are written for engineers, security owners, and leadership review.</div>
+          <div class="engagement-code">REMEDIATION</div>
+          <div class="engagement-text">Code patch for injection flaws (parameterized queries, templating), configuration hardening (remove public S3 ACLs, enforce MFA), architectural changes (API auth redesign), and validation retest date scheduled within 14 days.</div>
         </div>
-      </div>
-              </div>
       </div>
     </div>
   </div>
@@ -794,10 +1126,10 @@
   <div class="services-grid">
 
     <!-- 1. Web App VAPT -->
-    <div class="service-card fade-up">
+    <div class="service-card fade-up" data-category="app" data-accent="cyan">
       <div class="service-num">01 / 06</div>
       <div class="service-icon">
-        <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <rect x="2" y="6" width="32" height="24" rx="2" stroke="#00e5ff" stroke-width="1.5"/>
           <path d="M2 12h32" stroke="#00e5ff" stroke-width="1.5"/>
           <circle cx="7" cy="9" r="1.5" fill="#ff2d5b"/>
@@ -807,7 +1139,7 @@
         </svg>
       </div>
       <div class="service-name">Web Application VAPT</div>
-      <div class="service-desc">Comprehensive testing of web apps against OWASP Top 10 and beyond. SQL injection, XSS, CSRF, IDOR, authentication bypasses, and business logic flaws.</div>
+      <div class="service-desc">SQL injection in parameterized queries, Second-order XSS via output encoding flaws, CSRF token validation bypass, Race condition in transaction processing, Horizontal privilege escalation via ID manipulation, Insecure deserialization in session tokens, Business logic flaw in discount stacking.</div>
       <div class="service-tags">
         <span class="tag">OWASP Top 10</span>
         <span class="tag">IDOR</span>
@@ -818,10 +1150,10 @@
     </div>
 
     <!-- 2. Network VAPT -->
-    <div class="service-card fade-up" style="transition-delay:0.1s">
+    <div class="service-card fade-up" style="transition-delay:0.1s" data-category="infra" data-accent="danger">
       <div class="service-num">02 / 06</div>
       <div class="service-icon">
-        <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <circle cx="18" cy="18" r="4" stroke="#ff2d5b" stroke-width="1.5"/>
           <circle cx="6" cy="8" r="3" stroke="#ff2d5b" stroke-width="1.5"/>
           <circle cx="30" cy="8" r="3" stroke="#ff2d5b" stroke-width="1.5"/>
@@ -831,7 +1163,7 @@
         </svg>
       </div>
       <div class="service-name">Network Penetration Testing</div>
-      <div class="service-desc">Internal and external network assessments covering firewalls, routers, switches, and segmentation. Lateral movement simulation and privilege escalation testing.</div>
+      <div class="service-desc">LLMNR/NBT-NS poisoning for credential interception, Kerberoasting and AS-REP Roasting in AD environments, DCSync attacks via mistrust abuse, Firewall rule enumeration and bypass via tunneling, VLAN hopping via switch spoofing, Unencrypted SNMP community strings, Pass-the-hash lateral movement chains.</div>
       <div class="service-tags">
         <span class="tag">Internal</span>
         <span class="tag">External</span>
@@ -842,10 +1174,10 @@
     </div>
 
     <!-- 3. Mobile App VAPT -->
-    <div class="service-card fade-up" style="transition-delay:0.2s">
+    <div class="service-card fade-up" style="transition-delay:0.2s" data-category="app" data-accent="green">
       <div class="service-num">03 / 06</div>
       <div class="service-icon">
-        <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <rect x="10" y="2" width="16" height="32" rx="3" stroke="#39ff6e" stroke-width="1.5"/>
           <path d="M15 6h6" stroke="#39ff6e" stroke-width="1.5" stroke-linecap="round"/>
           <circle cx="18" cy="30" r="1.5" stroke="#39ff6e" stroke-width="1"/>
@@ -853,7 +1185,7 @@
         </svg>
       </div>
       <div class="service-name">Mobile Application VAPT</div>
-      <div class="service-desc">Android and iOS security testing aligned with OWASP Mobile Top 10. Insecure data storage, reverse engineering, API security, and traffic interception analysis.</div>
+      <div class="service-desc">Hardcoded API keys in app binary, Insecure local storage of auth tokens, Weak SSL pinning implementations (Frida bypass), Intent redirection exploitation (Android), Exported activities with implicit intent, Keychain access in iOS via debugger, OAuth token theft via MITM, Reverse engineering via Jadx and Ghidra.</div>
       <div class="service-tags">
         <span class="tag">Android</span>
         <span class="tag">iOS</span>
@@ -864,16 +1196,16 @@
     </div>
 
     <!-- 4. Cloud Security -->
-    <div class="service-card fade-up" style="transition-delay:0.1s">
+    <div class="service-card fade-up" style="transition-delay:0.1s" data-category="infra" data-accent="amber">
       <div class="service-num">04 / 06</div>
       <div class="service-icon">
-        <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <path d="M28 22a6 6 0 000-12 6 6 0 00-11.6-2A5 5 0 108 22" stroke="#ff9f1c" stroke-width="1.5" stroke-linecap="round"/>
           <path d="M14 26l4-4 4 4M18 22v8" stroke="#ff9f1c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </div>
       <div class="service-name">Cloud Security Assessment</div>
-      <div class="service-desc">Configuration review and penetration testing for AWS, Azure, and GCP environments. IAM misconfigurations, S3 bucket exposure, serverless function vulnerabilities.</div>
+      <div class="service-desc">S3 bucket ACL enumeration and public object access, IAM role trust policy abuse leading to cross-account access, EC2 security group overpermissiveness (0.0.0.0/0), RDS snapshot public exposure, Lambda function environment variable secrets, CloudTrail API key logging gaps, Unencrypted EBS snapshots, Privilege escalation via assume-role chaining.</div>
       <div class="service-tags">
         <span class="tag">AWS</span>
         <span class="tag">Azure</span>
@@ -884,17 +1216,17 @@
     </div>
 
     <!-- 5. Social Engineering -->
-    <div class="service-card fade-up" style="transition-delay:0.2s">
+    <div class="service-card fade-up" style="transition-delay:0.2s" data-category="human" data-accent="violet">
       <div class="service-num">05 / 06</div>
       <div class="service-icon">
-        <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <circle cx="18" cy="12" r="5" stroke="#bf5af2" stroke-width="1.5"/>
           <path d="M8 30c0-5.5 4.5-10 10-10s10 4.5 10 10" stroke="#bf5af2" stroke-width="1.5" stroke-linecap="round"/>
           <path d="M24 18l4-4M28 14l-2 4 4 2" stroke="#bf5af2" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </div>
       <div class="service-name">Social Engineering &amp; Phishing</div>
-      <div class="service-desc">Simulated phishing campaigns, vishing, and pretexting exercises to test human security controls. Comprehensive awareness metrics and training recommendations.</div>
+      <div class="service-desc">Multi-wave spear-phishing using OSINT-harvested employee data, Vishing calls impersonating IT/vendors to extract credentials, Pretexting via fake executive requests for wire transfers, USB drop attacks in parking lots seeding malware, Fake office WiFi SSIDs capturing credentials, QR-code redirects to credential capture forms, Measuring click-through and info disclosure rates.</div>
       <div class="service-tags">
         <span class="tag">Phishing Sim</span>
         <span class="tag">Vishing</span>
@@ -905,10 +1237,10 @@
     </div>
 
     <!-- 6. API Security -->
-    <div class="service-card fade-up" style="transition-delay:0.3s">
+    <div class="service-card fade-up" style="transition-delay:0.3s" data-category="app" data-accent="cyan">
       <div class="service-num">06 / 06</div>
       <div class="service-icon">
-        <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <path d="M8 18h20M20 10l8 8-8 8" stroke="#00e5ff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M4 6h4v4H4zM28 26h4v4h-4z" stroke="#00e5ff" stroke-width="1.2"/>
           <circle cx="8" cy="28" r="2" stroke="#00e5ff" stroke-width="1"/>
@@ -916,7 +1248,7 @@
         </svg>
       </div>
       <div class="service-name">API Security Testing</div>
-      <div class="service-desc">REST, GraphQL, and SOAP API security evaluation covering authentication, authorization, data exposure, rate limiting, and injection vulnerabilities per OWASP API Top 10.</div>
+      <div class="service-desc">Broken Object Level Authorization (BOLA) via sequential ID enumeration, Excessive data exposure in GraphQL introspection, Rate limiting bypass via X-Forwarded-For spoofing, JWT algorithm confusion and signature bypass, OAuth redirect URI whitelist bypass, Server-Side Request Forgery (SSRF) to internal metadata, API versioning disclosure leaking deprecated endpoints.</div>
       <div class="service-tags">
         <span class="tag">REST</span>
         <span class="tag">GraphQL</span>
@@ -936,30 +1268,30 @@
     <h2 class="section-title">How We <em>Operate</em></h2>
   </div>
   <div class="method-grid">
-    <div class="method-step fade-up">
+    <div class="method-step fade-up" tabindex="0">
       <div class="method-num">01</div>
       <div class="method-title">Scoping</div>
-      <div class="method-desc">Define target scope, rules of engagement, and objectives. NDA and authorization signed before any testing begins.</div>
+      <div class="method-desc">Target IP ranges/hostnames, DNS domains, AWS/GCP project IDs, API endpoints, authentication credentials, test windows (no production impact times), payload restrictions (no data exfil, no permanent changes), emergency shutdown contact, legal agreements signed, insurance verified, and incident response plan reviewed.</div>
     </div>
-    <div class="method-step fade-up" style="transition-delay:0.1s">
+    <div class="method-step fade-up" style="transition-delay:0.1s" tabindex="0">
       <div class="method-num">02</div>
       <div class="method-title">Reconnaissance</div>
-      <div class="method-desc">Passive and active OSINT gathering, attack surface mapping, technology fingerprinting, and enumeration.</div>
+      <div class="method-desc">Passive: Shodan/Censys IP enumeration, DNS zone transfers, GitHub secret scanning, WHOIS/ASN lookups. Active: Port scanning (Nmap top-1000), service version enumeration, Web application fingerprinting (Wappalyzer), SSL/TLS certificate chain analysis, hidden endpoint discovery (Subfinder/Amass).</div>
     </div>
-    <div class="method-step fade-up" style="transition-delay:0.2s">
+    <div class="method-step fade-up" style="transition-delay:0.2s" tabindex="0">
       <div class="method-num">03</div>
       <div class="method-title">Exploitation</div>
-      <div class="method-desc">Controlled exploitation of discovered vulnerabilities to determine real-world impact and business risk.</div>
+      <div class="method-desc">Manual validation of automated scanner findings. Chaining findings (e.g., IDOR → RCE). Testing business logic flaws. Bypassing authentication mechanisms. Crafting payloads for injection attacks. Exploiting race conditions. Fuzzing for unexpected behaviors. No destructive payloads — data extraction only for PoC.</div>
     </div>
-    <div class="method-step fade-up" style="transition-delay:0.3s">
+    <div class="method-step fade-up" style="transition-delay:0.3s" tabindex="0">
       <div class="method-num">04</div>
       <div class="method-title">Post-Exploit</div>
-      <div class="method-desc">Privilege escalation, lateral movement, persistence simulation, and data exfiltration pathways analysis.</div>
+      <div class="method-desc">Privilege escalation (kernel exploits, sudo misconfig). Lateral movement (credential spraying, VLAN hopping, token theft). Persistence mechanisms (cron jobs, scheduled tasks, backdoor accounts). Data exfiltration simulation (not executed). Detection evasion testing (log cleanup, firewall bypass, beacon concealment).</div>
     </div>
-    <div class="method-step fade-up" style="transition-delay:0.4s">
+    <div class="method-step fade-up" style="transition-delay:0.4s" tabindex="0">
       <div class="method-num">05</div>
       <div class="method-title">Reporting</div>
-      <div class="method-desc">Detailed technical report with CVSS-scored findings, executive summary, and step-by-step remediation guidance.</div>
+      <div class="method-desc">Executive Summary (business risk, remediation cost). Technical Report per CVSS 3.1 (base/temporal/environmental scores). For each finding: vulnerability description, affected assets, reproduction steps, HTTP requests, code screenshots, CVSS rating, CWE reference, remediation code/config, retest date. Appendix: Tools used, test coverage gaps, assumptions.</div>
     </div>
   </div>
 </section>
@@ -973,7 +1305,7 @@
   <div class="why-grid">
     <div class="why-item fade-up">
       <div class="why-icon">
-        <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <path d="M14 3l10 5v8c0 5-4 9-10 11C8 25 4 21 4 16V8l10-5z" stroke="#00e5ff" stroke-width="1.5" stroke-linejoin="round"/>
           <path d="M10 14l3 3 5-5" stroke="#00e5ff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
@@ -985,7 +1317,7 @@
     </div>
     <div class="why-item fade-up" style="transition-delay:0.1s">
       <div class="why-icon">
-        <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <circle cx="14" cy="14" r="10" stroke="#ff2d5b" stroke-width="1.5"/>
           <path d="M14 9v5l3 3" stroke="#ff2d5b" stroke-width="1.5" stroke-linecap="round"/>
         </svg>
@@ -997,7 +1329,7 @@
     </div>
     <div class="why-item fade-up" style="transition-delay:0.1s">
       <div class="why-icon">
-        <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <rect x="4" y="8" width="20" height="15" rx="1.5" stroke="#39ff6e" stroke-width="1.5"/>
           <path d="M9 8V6a5 5 0 0110 0v2" stroke="#39ff6e" stroke-width="1.5" stroke-linecap="round"/>
           <circle cx="14" cy="15.5" r="2" stroke="#39ff6e" stroke-width="1.2"/>
@@ -1010,7 +1342,7 @@
     </div>
     <div class="why-item fade-up" style="transition-delay:0.2s">
       <div class="why-icon">
-        <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <path d="M4 14h4l3-8 4 16 3-8 3 5 3-5" stroke="#ff9f1c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </div>
@@ -1037,48 +1369,52 @@
 <section id="contact">
   <div class="cta-tag">Start Today</div>
   <h2 class="cta-title">Ready to Test<br><em>Your Defenses?</em></h2>
-  <p class="cta-sub">Tell us about your environment and we'll scope a custom assessment within 24 hours. First consultation is free.</p>
+  <p class="cta-sub">Tell us about your environment and we'll scope a custom assessment within 24 hours.</p>
 
-  <form class="contact-form" onsubmit="handleSubmit(event)">
+  <form class="contact-form" id="contactForm" novalidate>
+    <input type="hidden" id="serviceType" value="">
     <div class="form-row">
       <div class="form-group">
-        <label class="form-label">Full Name</label>
-        <input class="form-input" type="text" placeholder="Jane Smith" required>
+        <label class="form-label" for="fullName">Full Name</label>
+        <input class="form-input" type="text" id="fullName" placeholder="Jane Smith" required>
       </div>
       <div class="form-group">
-        <label class="form-label">Work Email</label>
-        <input class="form-input" type="email" placeholder="jane@company.com" required>
+        <label class="form-label" for="workEmail">Work Email</label>
+        <input class="form-input" type="email" id="workEmail" placeholder="jane@company.com" required>
       </div>
     </div>
     <div class="form-row">
       <div class="form-group">
-        <label class="form-label">Company</label>
-        <input class="form-input" type="text" placeholder="Acme Corp" required>
+        <label class="form-label" for="company">Company</label>
+        <input class="form-input" type="text" id="company" placeholder="Acme Corp" required>
       </div>
       <div class="form-group">
-        <label class="form-label">Service Required</label>
-        <select class="form-select form-input">
-          <option value="">Select a service...</option>
-          <option>Web Application VAPT</option>
-          <option>Network Penetration Testing</option>
-          <option>Mobile Application VAPT</option>
-          <option>Cloud Security Assessment</option>
-          <option>Social Engineering / Phishing</option>
-          <option>API Security Testing</option>
-          <option>Full Red Team Engagement</option>
-        </select>
+        <label class="form-label" for="serviceDropdown">Primary Service</label>
+        <div class="select-wrapper">
+          <select class="form-select form-input" id="serviceDropdown" required>
+            <option value="">Select a service...</option>
+            <option value="web">Web Application VAPT</option>
+            <option value="network">Network Penetration Testing</option>
+            <option value="mobile">Mobile Application VAPT</option>
+            <option value="cloud">Cloud Security Assessment</option>
+            <option value="social">Social Engineering &amp; Phishing</option>
+            <option value="api">API Security Testing</option>
+          </select>
+        </div>
       </div>
     </div>
     <div class="form-group">
-      <label class="form-label">Scope &amp; Notes</label>
-      <textarea class="form-textarea form-input" placeholder="Describe your environment, number of targets, compliance requirements, timeline..."></textarea>
+      <label class="form-label" for="scopeNotes">Scope &amp; Notes</label>
+      <textarea class="form-textarea form-input" id="scopeNotes" placeholder="Describe your environment, number of targets, compliance requirements, timeline..."></textarea>
     </div>
-    <button type="submit" class="submit-btn">Send Secure Request →</button>
-    <div id="form-success" style="display:none; font-family:var(--mono); font-size:0.75rem; color:var(--accent3); letter-spacing:2px; text-align:center; padding:1rem;">
+    <button type="submit" class="submit-btn" id="submitBtn">Send Secure Request →</button>
+    <div id="form-success" role="status" style="display:none; font-family:var(--mono); font-size:0.75rem; color:var(--accent3); letter-spacing:2px; text-align:center; padding:1rem;">
       ✓ REQUEST RECEIVED — WE'LL RESPOND WITHIN 24 HOURS
     </div>
   </form>
 </section>
+
+</main>
 
 <!-- FOOTER -->
 <footer>
@@ -1091,58 +1427,300 @@
   </div>
 </footer>
 
+<button class="back-to-top" id="backToTop" aria-label="Back to top">↑</button>
+
 <script>
-  // Custom cursor
-  const dot = document.getElementById('cursorDot');
-  const ring = document.getElementById('cursorRing');
-  let mx = -100, my = -100, rx = -100, ry = -100;
-  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
-  function animateCursor() {
-    rx += (mx - rx) * 0.15;
-    ry += (my - ry) * 0.15;
-    dot.style.left = mx + 'px'; dot.style.top = my + 'px';
-    ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
-    requestAnimationFrame(animateCursor);
+(function() {
+  'use strict';
+
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const isFinePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+  /* ---------- Custom cursor (fine pointers only) ---------- */
+  if (isFinePointer && !prefersReducedMotion) {
+    document.body.classList.add('cursor-ready');
+    const dot = document.getElementById('cursorDot');
+    const ring = document.getElementById('cursorRing');
+    let mx = -100, my = -100, rx = -100, ry = -100;
+    let rafId = null;
+
+    document.addEventListener('mousemove', e => {
+      mx = e.clientX; my = e.clientY;
+      if (!rafId) rafId = requestAnimationFrame(animateCursor);
+    }, { passive: true });
+
+    function animateCursor() {
+      rx += (mx - rx) * 0.18;
+      ry += (my - ry) * 0.18;
+      dot.style.transform = `translate(${mx}px, ${my}px)`;
+      ring.style.transform = `translate(${rx}px, ${ry}px)`;
+      if (Math.abs(mx - rx) > 0.1 || Math.abs(my - ry) > 0.1) {
+        rafId = requestAnimationFrame(animateCursor);
+      } else {
+        rafId = null;
+      }
+    }
+
+    document.querySelectorAll('a, button, .service-card, .why-item, input, select, textarea').forEach(el => {
+      el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
+      el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
+    });
+    document.querySelectorAll('.btn-primary, .submit-btn').forEach(el => {
+      el.addEventListener('mouseenter', () => document.body.classList.add('hovering-danger'));
+      el.addEventListener('mouseleave', () => document.body.classList.remove('hovering-danger'));
+    });
   }
-  animateCursor();
-  document.querySelectorAll('a, button, .service-card, .why-item').forEach(el => {
-    el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
-    el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
+
+  /* ---------- Magnetic button effect ---------- */
+  if (isFinePointer && !prefersReducedMotion) {
+    document.querySelectorAll('.magnetic').forEach(wrap => {
+      wrap.addEventListener('mousemove', e => {
+        const rect = wrap.getBoundingClientRect();
+        const x = e.clientX - rect.left - rect.width / 2;
+        const y = e.clientY - rect.top - rect.height / 2;
+        wrap.style.transform = `translate(${x * 0.25}px, ${y * 0.35}px)`;
+      });
+      wrap.addEventListener('mouseleave', () => {
+        wrap.style.transform = 'translate(0,0)';
+      });
+    });
+  }
+
+  /* ---------- Scroll progress + nav shrink + back-to-top ---------- */
+  const scrollProgress = document.getElementById('scrollProgress');
+  const navEl = document.getElementById('mainNav');
+  const backToTop = document.getElementById('backToTop');
+  let scrollTicking = false;
+
+  function onScroll() {
+    const doc = document.documentElement;
+    const scrollTop = window.scrollY;
+    const max = doc.scrollHeight - doc.clientHeight;
+    const pct = max > 0 ? (scrollTop / max) * 100 : 0;
+    scrollProgress.style.width = pct + '%';
+    navEl.classList.toggle('scrolled', scrollTop > 40);
+    backToTop.classList.toggle('visible', scrollTop > 600);
+    scrollTicking = false;
+  }
+  window.addEventListener('scroll', () => {
+    if (!scrollTicking) { requestAnimationFrame(onScroll); scrollTicking = true; }
+  }, { passive: true });
+  onScroll();
+
+  backToTop.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
   });
 
-  // Threat ticker
+  /* ---------- Mobile nav toggle ---------- */
+  const navLinks = document.querySelector('.nav-links');
+  if (window.innerWidth <= 900 && navLinks && !document.querySelector('.nav-toggle')) {
+    const toggle = document.createElement('button');
+    toggle.className = 'nav-toggle';
+    toggle.setAttribute('aria-label', 'Toggle navigation menu');
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.textContent = '☰';
+    navEl.insertBefore(toggle, document.querySelector('.nav-cta'));
+    toggle.addEventListener('click', () => {
+      const open = navLinks.style.display === 'flex';
+      navLinks.style.display = open ? 'none' : 'flex';
+      navLinks.style.position = 'absolute';
+      navLinks.style.top = '100%';
+      navLinks.style.left = '0';
+      navLinks.style.right = '0';
+      navLinks.style.flexDirection = 'column';
+      navLinks.style.background = 'rgba(5,10,15,0.98)';
+      navLinks.style.padding = '1.5rem';
+      navLinks.style.gap = '1.25rem';
+      navLinks.style.borderBottom = '1px solid var(--border)';
+      toggle.setAttribute('aria-expanded', String(!open));
+    });
+    navLinks.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+      navLinks.style.display = 'none';
+      toggle.setAttribute('aria-expanded', 'false');
+    }));
+  }
+
+  /* ---------- Threat ticker ---------- */
   const threats = [
     { type: 'CVE', text: 'CVE-2025-3241 — Critical RCE in Apache Struts' },
     { type: 'ALERT', text: 'Ransomware wave targeting healthcare sector — 47 orgs affected' },
     { type: 'CVE', text: 'CVE-2025-1189 — Auth bypass in popular SSO provider' },
-    { type: 'BREACH', text: 'Supply chain attack via malicious npm package (downloads: 2.1M)' },
+    { type: 'BREACH', text: 'Supply chain attack via malicious npm package' },
     { type: 'CVE', text: 'CVE-2025-4402 — SSRF in cloud metadata endpoint' },
     { type: 'ALERT', text: 'Zero-day active exploitation in Windows Print Spooler' },
-    { type: 'BREACH', text: 'API key exposure in GitHub public repo — 1.4TB data at risk' },
+    { type: 'BREACH', text: 'API key exposure in public repo — large dataset at risk' },
     { type: 'CVE', text: 'CVE-2025-2890 — SQL injection in enterprise CMS platform' },
   ];
-  const ticker = document.getElementById('ticker');
+  const tickerEl = document.getElementById('ticker');
   const allThreats = [...threats, ...threats];
-  ticker.innerHTML = allThreats.map(t => `<span class="ticker-item"><span class="t-type">[${t.type}]</span>${t.text}</span>`).join('');
+  tickerEl.innerHTML = allThreats.map(t => `<span class="ticker-item"><span class="t-type">[${t.type}]</span>${t.text}</span>`).join('');
 
-  // Tools marquee
+  /* ---------- Tools marquee ---------- */
   const tools = ['Burp Suite Pro','Metasploit','Nmap','Nessus','Wireshark','Cobalt Strike','BloodHound','Impacket','Nuclei','SQLMap','Hydra','Nikto','John the Ripper','Frida','MobSF','Aircrack-ng','OWASP ZAP','Subfinder','Amass','Shodan','ExploitDB','Responder','CrackMapExec','Mimikatz'];
   const marquee = document.getElementById('toolsMarquee');
   const allTools = [...tools, ...tools];
   marquee.innerHTML = allTools.map(t => `<div class="tool-chip"><span class="dot">▶</span>${t}</div>`).join('');
 
-  // Fade-up on scroll
+  /* ---------- Fade-up on scroll ---------- */
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
-  }, { threshold: 0.1 });
+  }, { threshold: 0.12 });
   document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
 
-  // Form submit
-  function handleSubmit(e) {
-    e.preventDefault();
-    document.getElementById('form-success').style.display = 'block';
-    e.target.querySelectorAll('input, select, textarea, button').forEach(el => el.disabled = true);
+  /* ---------- Count-up stats ---------- */
+  const countEls = document.querySelectorAll('.count-up');
+  const countObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const el = entry.target;
+        const target = parseInt(el.dataset.target, 10);
+        if (prefersReducedMotion) { el.textContent = target; countObserver.unobserve(el); return; }
+        const duration = 1400;
+        const start = performance.now();
+        function tick(now) {
+          const progress = Math.min((now - start) / duration, 1);
+          const eased = 1 - Math.pow(1 - progress, 3);
+          el.textContent = Math.round(eased * target);
+          if (progress < 1) requestAnimationFrame(tick);
+          else el.textContent = target;
+        }
+        requestAnimationFrame(tick);
+        countObserver.unobserve(el);
+      }
+    });
+  }, { threshold: 0.5 });
+  countEls.forEach(el => countObserver.observe(el));
+
+  /* ---------- Method steps: click to pin active (mobile/touch friendly) ---------- */
+  document.querySelectorAll('.method-step').forEach(step => {
+    step.addEventListener('click', () => {
+      const wasActive = step.classList.contains('active');
+      document.querySelectorAll('.method-step').forEach(s => s.classList.remove('active'));
+      if (!wasActive) step.classList.add('active');
+    });
+    step.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); step.click(); }
+    });
+  });
+
+  /* ---------- Services dropdown ---------- */
+  const dropdown = document.getElementById('servicesDropdownMenu');
+  const trigger = document.getElementById('servicesDropdownTrigger');
+
+  trigger.addEventListener('click', () => {
+    dropdown.classList.toggle('active');
+    trigger.classList.toggle('active');
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!trigger.contains(e.target) && !dropdown.contains(e.target)) {
+      dropdown.classList.remove('active');
+      trigger.classList.remove('active');
+    }
+  });
+
+  window.scrollToServices = (service) => {
+    dropdown.classList.remove('active');
+    trigger.classList.remove('active');
+    const servicesSection = document.getElementById('services');
+    if (servicesSection) {
+      servicesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setTimeout(() => {
+        document.querySelector('.service-card')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 300);
+    }
+  };
+
+  /* ---------- Contact form ---------- */
+  const form = document.getElementById('contactForm');
+  const submitBtn = document.getElementById('submitBtn');
+  const successMsg = document.getElementById('form-success');
+  const serviceDropdown = document.getElementById('serviceDropdown');
+  const emailInput = document.querySelector('input[type="email"]');
+
+  // List of blocked personal email domains
+  const blockedDomains = [
+    'gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'aol.com',
+    'mail.com', 'protonmail.com', 'icloud.com', 'mail.ru', 'yandex.com',
+    'gmx.com', 'web.de', 'freenet.de', 'live.com', 'msn.com',
+    'googlemail.com', 'yahoo.co.uk', 'outlook.co.uk', 'btinternet.com',
+    'wanadoo.fr', 'orange.fr', 'free.fr', 'laposte.net', 'inbox.com',
+    'zoho.com', 'temp-mail.org', '10minutemail.com', 'mailinator.com',
+    'tempmail.com', 'throwaway.email', 'guerrillamail.com'
+  ];
+
+  function isCompanyEmail(email) {
+    if (!email || !email.includes('@')) return false;
+    const domain = email.split('@')[1].toLowerCase();
+    return !blockedDomains.includes(domain);
   }
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // Check standard form validity
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+
+    // Check if email is company domain
+    const email = emailInput.value.trim();
+    if (!isCompanyEmail(email)) {
+      emailInput.focus();
+      emailInput.style.borderColor = 'var(--accent2)';
+      emailInput.style.boxShadow = '0 0 0 3px rgba(255,45,91,0.15)';
+      
+      const errorMsg = document.createElement('div');
+      errorMsg.style.color = 'var(--accent2)';
+      errorMsg.style.fontSize = '0.75rem';
+      errorMsg.style.marginTop = '0.5rem';
+      errorMsg.style.fontFamily = 'var(--body)';
+      errorMsg.style.fontWeight = '500';
+      errorMsg.style.display = 'flex';
+      errorMsg.style.alignItems = 'center';
+      errorMsg.style.gap = '0.5rem';
+      errorMsg.innerHTML = '<span>⚠️</span> <span>Please add your business email</span>';
+      
+      const emailGroup = emailInput.closest('.form-group');
+      const existingError = emailGroup.querySelector('[data-error-msg]');
+      if (existingError) existingError.remove();
+      
+      errorMsg.setAttribute('data-error-msg', 'true');
+      emailGroup.appendChild(errorMsg);
+      return;
+    }
+
+    // Clear any previous error messages
+    const emailGroup = emailInput.closest('.form-group');
+    const existingError = emailGroup.querySelector('[data-error-msg]');
+    if (existingError) existingError.remove();
+    emailInput.style.borderColor = '';
+    emailInput.style.boxShadow = '';
+
+    submitBtn.disabled = true;
+    submitBtn.classList.add('loading');
+    submitBtn.textContent = 'Sending...';
+
+    setTimeout(() => {
+      submitBtn.classList.remove('loading');
+      submitBtn.textContent = 'Send Secure Request →';
+      successMsg.style.display = 'block';
+      form.querySelectorAll('input, select, textarea, button').forEach(el => el.disabled = true);
+      successMsg.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth', block: 'center' });
+    }, 900);
+  });
+
+  // Clear error on input
+  if (emailInput) {
+    emailInput.addEventListener('input', function() {
+      emailInput.style.borderColor = '';
+      const emailGroup = this.closest('.form-group');
+      const existingError = emailGroup.querySelector('[data-error-msg]');
+      if (existingError) existingError.remove();
+    });
+  }
+})();
 </script>
 </body>
 </html>
