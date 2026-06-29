@@ -135,19 +135,130 @@
   }
   .nav-links a:hover { color: var(--accent); }
   .nav-links a:hover::after { width: 100%; }
-  .nav-cta {
+
+  /* SERVICES DROPDOWN */
+  .services-dropdown { position: relative; }
+  .dropdown-trigger {
     font-family: var(--mono);
     font-size: 0.75rem;
+    color: var(--muted);
     letter-spacing: 2px;
     text-transform: uppercase;
-    padding: 0.6rem 1.5rem;
-    border: 1px solid var(--accent);
-    color: var(--accent);
-    background: transparent;
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: color 0.2s;
+  }
+  .dropdown-trigger:hover { color: var(--accent); }
+  .dropdown-trigger.active { color: var(--accent); }
+  .dropdown-arrow {
+    font-size: 0.6rem;
+    transition: transform 0.3s var(--ease);
+    display: inline-block;
+  }
+  .dropdown-trigger.active .dropdown-arrow { transform: rotate(180deg); }
+
+  .dropdown-menu {
+    position: absolute; top: calc(100% + 0.75rem); left: 0;
+    background: rgba(5,10,15,0.96); backdrop-filter: blur(12px);
+    border: 1px solid var(--border2); border-radius: 6px;
+    min-width: 320px; z-index: 1000;
+    opacity: 0; visibility: hidden; transform: translateY(-12px);
+    transition: all 0.25s var(--ease);
+    box-shadow: 0 12px 48px rgba(0,229,255,0.15);
+  }
+
+  .dropdown-menu.active {
+    opacity: 1; visibility: visible; transform: translateY(0);
+  }
+
+  .dropdown-item {
+    padding: 0.75rem 1rem; border-bottom: 1px solid rgba(0,229,255,0.06);
+    cursor: pointer; transition: all 0.2s var(--ease);
+    display: flex; align-items: center; gap: 0.75rem;
+  }
+
+  .dropdown-item:last-child { border-bottom: none; }
+
+  .dropdown-item:hover {
+    background: rgba(0,229,255,0.08);
+    border-left: 3px solid var(--accent);
+    padding-left: calc(1rem - 3px);
+  }
+
+  .dropdown-item-icon {
+    font-size: 1.2rem; min-width: 24px;
+  }
+
+  .dropdown-item-title {
+    font-family: var(--body);
+    font-size: 0.8rem;
+    color: var(--text);
+    font-weight: 500;
+  }
+  .nav-cta {
+    font-family: var(--display);
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    padding: 0.8rem 1.8rem;
+    border: none;
+    color: #050a0f;
+    background: linear-gradient(135deg, var(--accent), var(--accent3));
+    border-radius: 6px;
     transition: all 0.25s var(--ease);
     text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 16px rgba(0,229,255,0.25), 0 0 20px rgba(0,229,255,0.15);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
   }
-  .nav-cta:hover { background: var(--accent); color: var(--bg); box-shadow: 0 0 24px rgba(0,229,255,0.35); }
+
+  .nav-cta::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.3), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: -1;
+  }
+
+  .nav-cta:hover { 
+    transform: translateY(-3px);
+    box-shadow: 0 8px 32px rgba(0,229,255,0.5), 0 0 30px rgba(57,255,110,0.3);
+  }
+
+  .nav-cta:hover::before {
+    opacity: 1;
+  }
+
+  .nav-cta:active {
+    transform: translateY(-1px);
+  }
+
+  /* Pulsing glow animation for Get Pentest button */
+  @keyframes pulse-glow {
+    0%, 100% { 
+      box-shadow: 0 4px 16px rgba(0,229,255,0.25), 0 0 20px rgba(0,229,255,0.15);
+    }
+    50% { 
+      box-shadow: 0 4px 20px rgba(0,229,255,0.4), 0 0 35px rgba(57,255,110,0.3), 0 0 50px rgba(0,229,255,0.2);
+    }
+  }
+
+  .nav-cta {
+    animation: pulse-glow 2.5s ease-in-out infinite;
+  }
+
+  .nav-cta:hover {
+    animation: none;
+  }
   .nav-toggle { display: none; background: none; border: 1px solid var(--border2); color: var(--accent); padding: 0.5rem 0.75rem; }
 
   /* HERO */
@@ -194,22 +305,24 @@
   }
   .hero-actions { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
   .btn-primary {
-    font-family: var(--mono);
-    font-size: 0.8rem;
-    letter-spacing: 2px;
-    text-transform: uppercase;
+    font-family: var(--display);
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
     padding: 1rem 2rem;
-    background: var(--accent);
+    background: linear-gradient(135deg, var(--accent), var(--accent3));
     color: var(--bg);
     border: none;
+    border-radius: 6px;
     transition: all 0.3s var(--ease);
     text-decoration: none;
-    font-weight: 700;
     position: relative;
     overflow: hidden;
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
+    box-shadow: 0 4px 20px rgba(0,229,255,0.3), 0 0 25px rgba(57,255,110,0.2);
+    cursor: pointer;
   }
   .btn-primary::before {
     content: ''; position: absolute; inset: 0;
@@ -218,8 +331,11 @@
     transition: transform 0.5s var(--ease);
   }
   .btn-primary:hover::before { transform: translateX(100%) skewX(-15deg); }
-  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,229,255,0.3); }
-  .btn-primary:active { transform: translateY(0) scale(0.98); }
+  .btn-primary:hover { 
+    transform: translateY(-3px); 
+    box-shadow: 0 8px 32px rgba(0,229,255,0.5), 0 0 35px rgba(57,255,110,0.4);
+  }
+  .btn-primary:active { transform: translateY(-1px) scale(0.98); }
   .btn-ghost {
     font-family: var(--mono);
     font-size: 0.8rem;
@@ -567,18 +683,24 @@
 
   /* METHODOLOGY */
   #methodology { padding: 6rem 4rem; background: var(--bg); }
-  .method-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; position: relative; }
+  .method-grid { 
+    display: grid; 
+    grid-template-columns: repeat(5, 1fr); 
+    gap: 2rem; 
+    position: relative;
+    padding: 2rem 0;
+  }
   .method-grid::before {
     content: '';
     position: absolute;
-    top: 32px; left: 10%; right: 10%;
-    height: 1px;
+    top: 32px; left: 5%; right: 5%;
+    height: 2px;
     background: linear-gradient(90deg, transparent, var(--accent), transparent);
     z-index: 0;
   }
   .method-step {
     display: flex; flex-direction: column; align-items: center;
-    text-align: center; padding: 0 1rem;
+    text-align: center; padding: 0;
     position: relative; z-index: 1;
     cursor: pointer;
   }
@@ -611,8 +733,8 @@
     font-weight: 700;
     margin-bottom: 0.75rem;
   }
-  .method-desc { font-size: 0.8rem; color: var(--muted); line-height: 1.7; font-weight: 300; max-height: 0; overflow: hidden; opacity: 0; transition: max-height 0.3s var(--ease), opacity 0.3s; }
-  .method-step.active .method-desc, .method-step:hover .method-desc { max-height: 200px; opacity: 1; }
+  .method-desc { font-size: 0.8rem; color: var(--muted); line-height: 1.7; font-weight: 300; display: none; }
+  .method-step.active .method-desc, .method-step:hover .method-desc { display: block; }
 
   /* WHY US */
   #why { padding: 6rem 4rem; }
@@ -722,23 +844,50 @@
   .form-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236a8fa8' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 1rem center; }
   .form-input::placeholder { color: var(--muted); }
   .submit-btn {
-    font-family: var(--mono);
-    font-size: 0.8rem;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    padding: 1.1rem;
-    background: var(--accent);
+    font-family: var(--display);
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    padding: 1rem 2rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent3));
     color: var(--bg);
     border: none;
-    font-weight: 700;
-    transition: all 0.2s;
-    margin-top: 0.5rem;
+    border-radius: 6px;
+    transition: all 0.25s var(--ease);
+    margin-top: 1rem;
     position: relative;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0,229,255,0.25), 0 0 20px rgba(57,255,110,0.15);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    justify-content: center;
+    overflow: hidden;
   }
-  .submit-btn:hover:not(:disabled) { background: #00c8df; }
-  .submit-btn:disabled { opacity: 0.6; cursor: progress; }
+
+  .submit-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.15);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .submit-btn:hover:not(:disabled) { 
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(0,229,255,0.4), 0 0 30px rgba(57,255,110,0.3);
+  }
+
+  .submit-btn:hover:not(:disabled)::before {
+    opacity: 1;
+  }
+
+  .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
   .submit-btn.loading::after {
-    content: ''; position: absolute; right: 1.25rem; top: 50%;
+    content: ''; position: absolute; right: 1.5rem; top: 50%;
     width: 14px; height: 14px; margin-top: -7px;
     border: 2px solid rgba(5,10,15,0.3); border-top-color: var(--bg);
     border-radius: 50%; animation: spin 0.7s linear infinite;
@@ -829,7 +978,37 @@
 <nav id="mainNav">
   <a href="#" class="nav-logo">ADVE<span>RSYL</span></a>
   <ul class="nav-links">
-    <li><a href="#services">Services</a></li>
+    <li class="services-dropdown">
+      <div class="dropdown-trigger" id="servicesDropdownTrigger">
+        Services <span class="dropdown-arrow">▼</span>
+      </div>
+      <div class="dropdown-menu" id="servicesDropdownMenu">
+        <div class="dropdown-item" onclick="scrollToServices('web')">
+          <div class="dropdown-item-icon">🌐</div>
+          <div class="dropdown-item-title">Web Application VAPT</div>
+        </div>
+        <div class="dropdown-item" onclick="scrollToServices('network')">
+          <div class="dropdown-item-icon">🔗</div>
+          <div class="dropdown-item-title">Network Penetration Testing</div>
+        </div>
+        <div class="dropdown-item" onclick="scrollToServices('mobile')">
+          <div class="dropdown-item-icon">📱</div>
+          <div class="dropdown-item-title">Mobile Application VAPT</div>
+        </div>
+        <div class="dropdown-item" onclick="scrollToServices('cloud')">
+          <div class="dropdown-item-icon">☁️</div>
+          <div class="dropdown-item-title">Cloud Security Assessment</div>
+        </div>
+        <div class="dropdown-item" onclick="scrollToServices('api')">
+          <div class="dropdown-item-icon">🔌</div>
+          <div class="dropdown-item-title">API Security Testing</div>
+        </div>
+        <div class="dropdown-item" onclick="scrollToServices('social')">
+          <div class="dropdown-item-icon">🎯</div>
+          <div class="dropdown-item-title">Social Engineering & Phishing</div>
+        </div>
+      </div>
+    </li>
     <li><a href="#methodology">Methodology</a></li>
     <li><a href="#tools">Tools</a></li>
     <li><a href="#why">Why Us</a></li>
@@ -1184,25 +1363,25 @@
   <h2 class="cta-title">Ready to Test<br><em>Your Defenses?</em></h2>
   <p class="cta-sub">Tell us about your environment and we'll scope a custom assessment within 24 hours. First consultation is free.</p>
 
-  <form class="contact-form" id="contactForm" novalidate>
+  <form class="contact-form" id="contactForm" data-formspree-id="mojowrry" novalidate>
     <div class="form-row">
       <div class="form-group">
         <label class="form-label" for="fullName">Full Name</label>
-        <input class="form-input" type="text" id="fullName" placeholder="Jane Smith" required>
+        <input class="form-input" type="text" id="fullName" name="fullName" placeholder="Jane Smith" required>
       </div>
       <div class="form-group">
         <label class="form-label" for="workEmail">Work Email</label>
-        <input class="form-input" type="email" id="workEmail" placeholder="jane@company.com" required>
+        <input class="form-input" type="email" id="workEmail" name="email" placeholder="jane@company.com" required>
       </div>
     </div>
     <div class="form-row">
       <div class="form-group">
         <label class="form-label" for="company">Company</label>
-        <input class="form-input" type="text" id="company" placeholder="Acme Corp" required>
+        <input class="form-input" type="text" id="company" name="company" placeholder="Acme Corp" required>
       </div>
       <div class="form-group">
         <label class="form-label" for="serviceType">Service Required</label>
-        <select class="form-select form-input" id="serviceType">
+        <select class="form-select form-input" id="serviceType" name="service">
           <option value="">Select a service...</option>
           <option>Web Application VAPT</option>
           <option>Network Penetration Testing</option>
@@ -1216,7 +1395,7 @@
     </div>
     <div class="form-group">
       <label class="form-label" for="scopeNotes">Scope &amp; Notes</label>
-      <textarea class="form-textarea form-input" id="scopeNotes" placeholder="Describe your environment, number of targets, compliance requirements, timeline..."></textarea>
+      <textarea class="form-textarea form-input" id="scopeNotes" name="scope" placeholder="Describe your environment, number of targets, compliance requirements, timeline..."></textarea>
     </div>
     <button type="submit" class="submit-btn" id="submitBtn">Send Secure Request →</button>
     <div id="form-success" role="status" style="display:none; font-family:var(--mono); font-size:0.75rem; color:var(--accent3); letter-spacing:2px; text-align:center; padding:1rem;">
@@ -1351,6 +1530,36 @@
     }));
   }
 
+  /* ---------- Services dropdown ---------- */
+  const dropdown = document.getElementById('servicesDropdownMenu');
+  const trigger = document.getElementById('servicesDropdownTrigger');
+
+  if (trigger && dropdown) {
+    trigger.addEventListener('click', () => {
+      dropdown.classList.toggle('active');
+      trigger.classList.toggle('active');
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!trigger.contains(e.target) && !dropdown.contains(e.target)) {
+        dropdown.classList.remove('active');
+        trigger.classList.remove('active');
+      }
+    });
+
+    window.scrollToServices = (service) => {
+      dropdown.classList.remove('active');
+      trigger.classList.remove('active');
+      const servicesSection = document.getElementById('services');
+      if (servicesSection) {
+        servicesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setTimeout(() => {
+          document.querySelector('.service-card')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 300);
+      }
+    };
+  }
+
   /* ---------- Threat ticker ---------- */
   const threats = [
     { type: 'CVE', text: 'CVE-2025-3241 — Critical RCE in Apache Struts' },
@@ -1436,22 +1645,119 @@
 
   form.addEventListener('submit', function(e) {
     e.preventDefault();
+    
+    // Get form values
+    const fullName = document.getElementById('fullName');
+    const workEmail = document.getElementById('workEmail');
+    const company = document.getElementById('company');
+    const serviceType = document.getElementById('serviceType');
+    
+    // Check standard form validity
     if (!form.checkValidity()) {
       form.reportValidity();
       return;
     }
+
+    // Company email validation
+    const email = workEmail.value.trim();
+    const blockedDomains = [
+      'gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'aol.com',
+      'mail.com', 'protonmail.com', 'icloud.com', 'mail.ru', 'yandex.com',
+      'gmx.com', 'web.de', 'freenet.de', 'live.com', 'msn.com',
+      'googlemail.com', 'yahoo.co.uk', 'outlook.co.uk', 'btinternet.com',
+      'wanadoo.fr', 'orange.fr', 'free.fr', 'laposte.net', 'inbox.com',
+      'zoho.com', 'temp-mail.org', '10minutemail.com', 'mailinator.com',
+      'tempmail.com', 'throwaway.email', 'guerrillamail.com'
+    ];
+
+    if (!email || !email.includes('@')) {
+      workEmail.focus();
+      workEmail.style.borderColor = 'var(--accent2)';
+      workEmail.style.boxShadow = '0 0 0 3px rgba(255,45,91,0.15)';
+      return;
+    }
+
+    const domain = email.split('@')[1].toLowerCase();
+    if (blockedDomains.includes(domain)) {
+      workEmail.focus();
+      workEmail.style.borderColor = 'var(--accent2)';
+      workEmail.style.boxShadow = '0 0 0 3px rgba(255,45,91,0.15)';
+      
+      const emailGroup = workEmail.closest('.form-group');
+      const existingError = emailGroup.querySelector('[data-error-msg]');
+      if (existingError) existingError.remove();
+      
+      const errorMsg = document.createElement('div');
+      errorMsg.style.color = 'var(--accent2)';
+      errorMsg.style.fontSize = '0.75rem';
+      errorMsg.style.marginTop = '0.5rem';
+      errorMsg.style.fontFamily = 'var(--body)';
+      errorMsg.style.fontWeight = '500';
+      errorMsg.style.display = 'flex';
+      errorMsg.style.alignItems = 'center';
+      errorMsg.style.gap = '0.5rem';
+      errorMsg.innerHTML = '<span>⚠️</span> <span>Please add your business email</span>';
+      errorMsg.setAttribute('data-error-msg', 'true');
+      emailGroup.appendChild(errorMsg);
+      return;
+    }
+
+    // Clear any error styling
+    workEmail.style.borderColor = '';
+    workEmail.style.boxShadow = '';
+    const emailGroup = workEmail.closest('.form-group');
+    const existingError = emailGroup.querySelector('[data-error-msg]');
+    if (existingError) existingError.remove();
+
     submitBtn.disabled = true;
     submitBtn.classList.add('loading');
-    submitBtn.textContent = 'Sending...';
+    submitBtn.textContent = 'Sending Secure Request...';
 
-    setTimeout(() => {
+    // Prepare form data for Formspree
+    const formData = new FormData(form);
+    formData.append('_subject', `New Pentest Request from ${fullName.value} - ${serviceType.value}`);
+    formData.append('_captcha', 'false');
+
+    // Send to Formspree
+    const formspreeId = form.getAttribute('data-formspree-id');
+    fetch(`https://formspree.io/f/${formspreeId}`, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'Accept': 'application/json'
+      }
+    })
+    .then(response => {
+      if (response.ok) {
+        submitBtn.classList.remove('loading');
+        submitBtn.textContent = 'Send Secure Request →';
+        successMsg.style.display = 'block';
+        form.querySelectorAll('input, select, textarea, button').forEach(el => el.disabled = true);
+        successMsg.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth', block: 'center' });
+      } else {
+        throw new Error('Form submission failed');
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      submitBtn.disabled = false;
       submitBtn.classList.remove('loading');
       submitBtn.textContent = 'Send Secure Request →';
-      successMsg.style.display = 'block';
-      form.querySelectorAll('input, select, textarea, button').forEach(el => el.disabled = true);
-      successMsg.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth', block: 'center' });
-    }, 900);
+      alert('Error sending request. Please try again or email info@adversyl.com');
+    });
   });
+
+  // Clear error on email input
+  const workEmail = document.getElementById('workEmail');
+  if (workEmail) {
+    workEmail.addEventListener('input', function() {
+      this.style.borderColor = '';
+      this.style.boxShadow = '';
+      const emailGroup = this.closest('.form-group');
+      const existingError = emailGroup.querySelector('[data-error-msg]');
+      if (existingError) existingError.remove();
+    });
+  }
 })();
 </script>
 </body>
